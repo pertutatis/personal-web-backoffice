@@ -147,4 +147,71 @@ describe('BookTable.vue', () => {
     expect(emptyMessage.exists()).toBe(true)
     expect(emptyMessage.text()).toContain('No hay libros disponibles')
   })
+
+  it('deshabilita botones de paginación según la página actual', async () => {
+    // Caso 1: Primera página (botón "Anterior" debería estar deshabilitado)
+    await wrapper.setProps({
+      pagination: {
+        page: 1,
+        limit: 10,
+        total: 30,
+        pages: 3
+      }
+    })
+    
+    const paginationButtons = wrapper.findAll('button')
+    const prevButton = paginationButtons[0]
+    const nextButton = paginationButtons[1]
+    
+    expect(prevButton.attributes('disabled')).toBeDefined()
+    expect(nextButton.attributes('disabled')).toBeUndefined()
+    
+    // Caso 2: Última página (botón "Siguiente" debería estar deshabilitado)
+    await wrapper.setProps({
+      pagination: {
+        page: 3,
+        limit: 10,
+        total: 30,
+        pages: 3
+      }
+    })
+    
+    expect(prevButton.attributes('disabled')).toBeUndefined()
+    expect(nextButton.attributes('disabled')).toBeDefined()
+  })
+
+  it('formatea correctamente ISBN-10 e ISBN-13', async () => {
+    // Libro con ISBN-10
+    const booksWithDifferentISBNs = [
+      {
+        ...mockBooks[0],
+        isbn: '0132350882' // ISBN-10
+      },
+      {
+        ...mockBooks[1],
+        isbn: '9783161484100' // ISBN-13
+      }
+    ];
+    
+    await wrapper.setProps({
+      books: booksWithDifferentISBNs
+    });
+    
+    const isbnElements = wrapper.findAll('td:nth-child(3)');
+    
+    // Verificar que el ISBN-10 está formateado (contiene guiones)
+    const isbn10Text = isbnElements[0].text().trim();
+    expect(isbn10Text).toContain('-');
+    expect(isbn10Text.split('-').length).toBeGreaterThan(1);
+    
+    // Verificar que el ISBN-13 está formateado (contiene guiones)
+    const isbn13Text = isbnElements[1].text().trim();
+    expect(isbn13Text).toContain('-');
+    expect(isbn13Text.split('-').length).toBeGreaterThan(1);
+    
+    // Verificar que el formato es diferente para ISBN-10 e ISBN-13
+    const isbn10Parts = isbn10Text.split('-').length;
+    const isbn13Parts = isbn13Text.split('-').length;
+    expect(isbn10Parts).not.toEqual(isbn13Parts);
+  })
 })

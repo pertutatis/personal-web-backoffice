@@ -12,7 +12,7 @@ export default defineConfig({
       provider: 'c8',
       reporter: ['text', 'json', 'html'],
     },
-    include: ['./tests/**/*.{test,spec}.{js,ts,jsx,tsx}', './tests/**/*.spec.ts'],
+    include: ['tests/**/*.spec.ts'],
     exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
   },
   resolve: {
