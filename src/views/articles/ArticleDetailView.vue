@@ -51,10 +51,11 @@
       <!-- Encabezado y metadata -->
       <div class="article-header">
         <h1 class="article-title">{{ article.title }}</h1>
+        <div class="article-slug">
+          <span class="slug-label">Slug:</span>
+          <span class="slug-value">{{ article.slug }}</span>
+        </div>
         <div class="article-meta">
-          <span :class="['status-badge', getStatusClass(article.status)]">
-            {{ formatStatus(article.status) }}
-          </span>
           <span class="meta-item">
             <svg xmlns="http://www.w3.org/2000/svg" class="meta-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2m-6 0v12m6-12v12M7 7h10" />
@@ -67,12 +68,14 @@
             </svg>
             Actualizado el {{ formatDate(article.updatedAt) }}
           </span>
-          <span v-if="article.publishedAt" class="meta-item">
-            <svg xmlns="http://www.w3.org/2000/svg" class="meta-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            Publicado el {{ formatDate(article.publishedAt) }}
-          </span>
+        </div>
+      </div>
+
+      <!-- Extracto -->
+      <div class="article-excerpt">
+        <h3 class="section-title">Extracto</h3>
+        <div class="excerpt-content">
+          {{ article.excerpt }}
         </div>
       </div>
 
@@ -83,6 +86,21 @@
         <div v-else class="empty-content">
           <p>Este artículo no tiene contenido.</p>
         </div>
+      </div>
+
+      <!-- Enlaces relacionados -->
+      <div v-if="article.relatedLinks && article.relatedLinks.length > 0" class="related-links">
+        <h3 class="section-title">Enlaces Relacionados</h3>
+        <ul class="links-list">
+          <li v-for="(link, index) in article.relatedLinks" :key="index" class="link-item">
+            <a :href="link.url" target="_blank" rel="noopener noreferrer" class="link">
+              {{ link.text }}
+              <svg xmlns="http://www.w3.org/2000/svg" class="external-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </li>
+        </ul>
       </div>
 
       <!-- Libros relacionados -->
@@ -187,7 +205,7 @@ async function loadArticle() {
 
 // Cargar libros relacionados
 async function loadRelatedBooks() {
-  if (!article.value || !article.value.relatedBookIds?.length) {
+  if (!article.value || !article.value.bookIds?.length) {
     books.value = [];
     return;
   }
@@ -195,7 +213,7 @@ async function loadRelatedBooks() {
   try {
     // En un caso real, tendríamos un endpoint para obtener múltiples libros por ID
     // Aquí simulamos con múltiples llamadas por simplicidad
-    const bookPromises = article.value.relatedBookIds.map(id => 
+    const bookPromises = article.value.bookIds.map(id => 
       booksApi.getBook(id).catch(() => null)
     );
     const results = await Promise.all(bookPromises);
@@ -388,6 +406,27 @@ onMounted(() => {
 
 .empty-content {
   @apply rounded-lg border border-dashed border-gray-300 p-6 text-center text-gray-500 dark:border-gray-600 dark:text-gray-400;
+}
+
+/* Enlaces relacionados */
+.related-links {
+  @apply mb-8 rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800;
+}
+
+.links-list {
+  @apply space-y-2 list-none pl-0;
+}
+
+.link-item {
+  @apply py-1;
+}
+
+.link {
+  @apply flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300;
+}
+
+.external-icon {
+  @apply ml-2 h-4 w-4 flex-shrink-0;
 }
 
 /* Libros relacionados */

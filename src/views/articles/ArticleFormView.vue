@@ -74,31 +74,32 @@
         <small v-if="errors.title" class="error-message">{{ errors.title }}</small>
       </div>
 
-      <!-- Estado de publicación -->
-      <div class="form-group">
-        <label class="form-label">Estado</label>
-        <div class="status-toggle">
-          <button 
-            type="button"
-            :class="['status-option', { 'active': form.status === 'draft' }]"
-            @click="form.status = 'draft'"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="status-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            <span>Borrador</span>
-          </button>
-          <button 
-            type="button"
-            :class="['status-option', { 'active': form.status === 'published' }]"
-            @click="form.status = 'published'"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="status-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            <span>Publicado</span>
-          </button>
-        </div>
+      <!-- Slug -->
+      <div class="form-group" :class="{ 'has-error': errors.slug }">
+        <label for="article-slug" class="form-label">Slug *</label>
+        <input 
+          id="article-slug"
+          type="text"
+          v-model="form.slug"
+          :class="['form-input', { 'error': errors.slug }]"
+          placeholder="identificador-unico-del-articulo"
+        />
+        <small v-if="errors.slug" class="error-message">{{ errors.slug }}</small>
+        <small v-else class="form-hint">URL amigable para el artículo (solo letras minúsculas, números y guiones)</small>
+      </div>
+      
+      <!-- Extracto -->
+      <div class="form-group" :class="{ 'has-error': errors.excerpt }">
+        <label for="article-excerpt" class="form-label">Extracto *</label>
+        <textarea 
+          id="article-excerpt"
+          v-model="form.excerpt"
+          :class="['form-textarea', { 'error': errors.excerpt }]"
+          placeholder="Breve resumen del artículo (máx. 300 caracteres)"
+          rows="3"
+        ></textarea>
+        <small v-if="errors.excerpt" class="error-message">{{ errors.excerpt }}</small>
+        <small v-else class="form-hint">Breve descripción que aparecerá en los listados</small>
       </div>
 
       <!-- Editor Markdown -->
@@ -192,6 +193,64 @@
         </div>
       </div>
 
+      <!-- Enlaces relacionados -->
+      <div class="form-group">
+        <label class="form-label">Enlaces relacionados</label>
+        <div class="related-links">
+          <div v-if="form.relatedLinks.length === 0" class="no-links">
+            No hay enlaces relacionados. Haz clic en "Añadir enlace" para agregar uno.
+          </div>
+          <div 
+            v-for="(link, index) in form.relatedLinks" 
+            :key="index" 
+            class="link-item"
+          >
+            <div class="link-inputs">
+              <div class="link-input-group">
+                <label :for="'link-text-' + index" class="link-label">Texto</label>
+                <input
+                  :id="'link-text-' + index"
+                  type="text"
+                  v-model="link.text"
+                  placeholder="Texto a mostrar"
+                  class="form-input"
+                />
+              </div>
+              <div class="link-input-group">
+                <label :for="'link-url-' + index" class="link-label">URL</label>
+                <input
+                  :id="'link-url-' + index"
+                  type="text"
+                  v-model="link.url"
+                  placeholder="https://ejemplo.com"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="removeLink(index)"
+              class="remove-link-button"
+              title="Eliminar enlace"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+          <button
+            type="button"
+            @click="addLink"
+            class="add-link-button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Añadir enlace
+          </button>
+        </div>
+      </div>
+
       <!-- Acciones del formulario -->
       <div class="form-actions">
         <button type="button" @click="cancel" class="cancel-button">
@@ -234,9 +293,11 @@ const { id } = toRefs(props);
 const form = ref({
   id: '',
   title: '',
+  excerpt: '',
   content: '',
-  status: 'draft' as ArticleStatus,
-  relatedBookIds: [] as string[]
+  slug: '',
+  bookIds: [] as string[],
+  relatedLinks: [] as Array<{ text: string; url: string }>
 });
 
 // Estado de UI
@@ -260,6 +321,15 @@ const renderedContent = computed(() => {
 });
 
 // Métodos
+// Funciones para manejar enlaces relacionados
+function addLink() {
+  form.value.relatedLinks.push({ text: '', url: '' });
+}
+
+function removeLink(index: number) {
+  form.value.relatedLinks.splice(index, 1);
+}
+
 function validateForm() {
   const newErrors: Record<string, string> = {};
   
@@ -269,11 +339,36 @@ function validateForm() {
     newErrors.title = 'El título no puede exceder los 100 caracteres';
   }
   
+  if (!form.value.slug.trim()) {
+    newErrors.slug = 'El slug es obligatorio';
+  } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.value.slug)) {
+    newErrors.slug = 'El slug solo puede contener letras minúsculas, números y guiones';
+  }
+
+  if (!form.value.excerpt.trim()) {
+    newErrors.excerpt = 'El extracto es obligatorio';
+  } else if (form.value.excerpt.length > 300) {
+    newErrors.excerpt = 'El extracto no puede exceder los 300 caracteres';
+  } else if (form.value.excerpt.length < 10) {
+    newErrors.excerpt = 'El extracto debe tener al menos 10 caracteres';
+  }
+  
   if (!form.value.content.trim()) {
     newErrors.content = 'El contenido es obligatorio';
   } else if (form.value.content.length < 10) {
     newErrors.content = 'El contenido debe tener al menos 10 caracteres';
   }
+  
+  // Validar enlaces relacionados
+  form.value.relatedLinks.forEach((link, index) => {
+    if (link.text.trim() && !link.url.trim()) {
+      newErrors[`link-${index}`] = `El enlace #${index + 1} debe tener una URL`;
+    } else if (!link.text.trim() && link.url.trim()) {
+      newErrors[`link-${index}`] = `El enlace #${index + 1} debe tener un texto`;
+    } else if (link.url.trim() && !link.url.startsWith('http')) {
+      newErrors[`link-${index}`] = `La URL del enlace #${index + 1} debe comenzar con http:// o https://`;
+    }
+  });
   
   errors.value = newErrors;
   return Object.keys(newErrors).length === 0;
@@ -296,9 +391,11 @@ async function loadArticle() {
     form.value = {
       id: article.id,
       title: article.title,
+      excerpt: article.excerpt,
       content: article.content,
-      status: article.status,
-      relatedBookIds: article.relatedBookIds || []
+      slug: article.slug,
+      bookIds: article.bookIds || [],
+      relatedLinks: article.relatedLinks || []
     };
     
   } catch (err: any) {
@@ -331,15 +428,15 @@ async function loadBooks() {
 }
 
 function isBookSelected(bookId: string): boolean {
-  return form.value.relatedBookIds.includes(bookId);
+  return form.value.bookIds.includes(bookId);
 }
 
 function toggleBookSelection(bookId: string) {
-  const index = form.value.relatedBookIds.indexOf(bookId);
+  const index = form.value.bookIds.indexOf(bookId);
   if (index === -1) {
-    form.value.relatedBookIds.push(bookId);
+    form.value.bookIds.push(bookId);
   } else {
-    form.value.relatedBookIds.splice(index, 1);
+    form.value.bookIds.splice(index, 1);
   }
 }
 
@@ -377,9 +474,11 @@ async function saveArticle() {
       // Actualizar artículo existente
       await articlesApi.updateArticle(articleId.value, {
         title: form.value.title,
+        excerpt: form.value.excerpt,
         content: form.value.content,
-        status: form.value.status,
-        relatedBookIds: form.value.relatedBookIds
+        slug: form.value.slug,
+        bookIds: form.value.bookIds,
+        relatedLinks: form.value.relatedLinks
       });
       
       uiStore.addNotification({
@@ -391,9 +490,11 @@ async function saveArticle() {
       await articlesApi.createArticle({
         id: form.value.id,
         title: form.value.title,
+        excerpt: form.value.excerpt,
         content: form.value.content,
-        status: form.value.status,
-        relatedBookIds: form.value.relatedBookIds.length ? form.value.relatedBookIds : undefined
+        slug: form.value.slug,
+        bookIds: form.value.bookIds,
+        relatedLinks: form.value.relatedLinks
       });
       
       uiStore.addNotification({

@@ -20,23 +20,37 @@
           <ErrorMessage name="title" class="mt-1 text-sm text-red-600 dark:text-red-400" />
         </div>
 
-        <!-- Estado -->
+        <!-- Slug -->
         <div class="mb-6">
-          <label for="status" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-            Estado
+          <label for="slug" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            Slug
           </label>
           <Field
-            as="select"
-            id="status"
-            name="status"
-            v-model="formData.status"
+            id="slug"
+            name="slug"
+            type="text"
+            v-model="formData.slug"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            :class="{ 'border-red-500 focus:ring-red-500': errors.status }"
-          >
-            <option value="draft">Borrador</option>
-            <option value="published">Publicado</option>
-          </Field>
-          <ErrorMessage name="status" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+            :class="{ 'border-red-500 focus:ring-red-500': errors.slug }"
+          />
+          <ErrorMessage name="slug" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+        </div>
+
+        <!-- Extracto -->
+        <div class="mb-6">
+          <label for="excerpt" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            Extracto
+          </label>
+          <Field
+            as="textarea"
+            id="excerpt"
+            name="excerpt"
+            v-model="formData.excerpt"
+            rows="3"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            :class="{ 'border-red-500 focus:ring-red-500': errors.excerpt }"
+          />
+          <ErrorMessage name="excerpt" class="mt-1 text-sm text-red-600 dark:text-red-400" />
         </div>
 
         <!-- Contenido (markdown) -->
@@ -77,7 +91,7 @@
                 type="checkbox"
                 :id="`book-${book.id}`"
                 :value="book.id"
-                v-model="formData.relatedBookIds"
+                v-model="formData.bookIds"
                 class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
               <label :for="`book-${book.id}`" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
@@ -85,6 +99,42 @@
               </label>
             </div>
           </div>
+        </div>
+
+        <!-- Enlaces relacionados -->
+        <div class="mb-6">
+          <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+            Enlaces relacionados
+          </label>
+          <div v-for="(link, index) in formData.relatedLinks" :key="index" class="flex mb-2 gap-2">
+            <input
+              type="text"
+              v-model="link.text"
+              placeholder="Texto del enlace"
+              class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+            <input
+              type="text"
+              v-model="link.url"
+              placeholder="URL"
+              class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            />
+            <button
+              type="button"
+              @click="removeRelatedLink(index)"
+              class="px-3 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+            >
+              <span class="sr-only">Eliminar</span>
+              <span>×</span>
+            </button>
+          </div>
+          <button
+            type="button"
+            @click="addRelatedLink"
+            class="mt-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+          >
+            Añadir enlace relacionado
+          </button>
         </div>
 
         <!-- Botones de acción -->
@@ -153,27 +203,44 @@ const validationSchema = toFormValidator(
     title: z.string()
       .min(3, 'El título debe tener al menos 3 caracteres')
       .max(100, 'El título no puede exceder los 100 caracteres'),
+    slug: z.string()
+      .min(3, 'El slug debe tener al menos 3 caracteres')
+      .max(100, 'El slug no puede exceder los 100 caracteres')
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'El slug solo puede contener letras minúsculas, números y guiones'),
+    excerpt: z.string()
+      .min(10, 'El extracto debe tener al menos 10 caracteres')
+      .max(300, 'El extracto no puede exceder los 300 caracteres'),
     content: z.string()
       .min(10, 'El contenido debe tener al menos 10 caracteres'),
-    status: z.enum(['draft', 'published'], {
-      errorMap: () => ({ message: 'El estado debe ser borrador o publicado' })
-    }),
   })
 );
+
+// Función para convertir el título a slug
+const titleToSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Eliminar caracteres especiales
+    .replace(/\s+/g, '-') // Reemplazar espacios por guiones
+    .replace(/-+/g, '-'); // Eliminar guiones duplicados
+};
 
 // Datos del formulario
 const formData = ref<{
   id: string;
   title: string;
+  excerpt: string;
   content: string;
-  status: 'draft' | 'published';
-  relatedBookIds: string[];
+  slug: string;
+  bookIds: string[];
+  relatedLinks: Array<{ text: string; url: string }>;
 }>({
   id: '',
   title: '',
+  excerpt: '',
   content: '',
-  status: 'draft',
-  relatedBookIds: []
+  slug: '',
+  bookIds: [],
+  relatedLinks: []
 });
 
 // Si estamos en modo edición, cargar los datos del artículo
@@ -184,9 +251,11 @@ watch(
       formData.value = {
         id: newArticle.id,
         title: newArticle.title,
+        excerpt: newArticle.excerpt,
         content: newArticle.content,
-        status: newArticle.status,
-        relatedBookIds: newArticle.relatedBookIds || []
+        slug: newArticle.slug,
+        bookIds: newArticle.bookIds || [],
+        relatedLinks: newArticle.relatedLinks || []
       };
     } else {
       // Generar un nuevo UUID para crear un nuevo artículo
@@ -195,6 +264,25 @@ watch(
   },
   { immediate: true }
 );
+
+// Generar automáticamente el slug cuando se cambia el título si estamos creando un nuevo artículo
+watch(
+  () => formData.value.title,
+  (newTitle) => {
+    if (!isEditMode.value && newTitle) {
+      formData.value.slug = titleToSlug(newTitle);
+    }
+  }
+);
+
+// Funciones para manejar los enlaces relacionados
+const addRelatedLink = () => {
+  formData.value.relatedLinks.push({ text: '', url: '' });
+};
+
+const removeRelatedLink = (index: number) => {
+  formData.value.relatedLinks.splice(index, 1);
+};
 
 // Renderizar la vista previa Markdown
 const renderedContent = computed(() => {
@@ -208,9 +296,11 @@ const onSubmit = async () => {
     // Edición: enviar solo los campos actualizables
     const updateData: ArticleUpdate = {
       title: formData.value.title,
+      excerpt: formData.value.excerpt,
       content: formData.value.content,
-      status: formData.value.status,
-      relatedBookIds: formData.value.relatedBookIds
+      slug: formData.value.slug,
+      bookIds: formData.value.bookIds,
+      relatedLinks: formData.value.relatedLinks
     };
     emit('save', updateData);
   } else {
@@ -218,9 +308,11 @@ const onSubmit = async () => {
     const createData: ArticleCreate = {
       id: formData.value.id,
       title: formData.value.title,
+      excerpt: formData.value.excerpt,
       content: formData.value.content,
-      status: formData.value.status,
-      relatedBookIds: formData.value.relatedBookIds
+      slug: formData.value.slug,
+      bookIds: formData.value.bookIds,
+      relatedLinks: formData.value.relatedLinks
     };
     emit('save', createData);
   }

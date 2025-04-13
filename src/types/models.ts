@@ -6,29 +6,32 @@
 export interface Article {
   id: string;
   title: string;
+  excerpt: string;
   content: string;
+  bookIds: string[];
+  relatedLinks: Array<{ text: string; url: string }>;
+  slug: string;
   createdAt: string;
-  updatedAt?: string;
-  publishedAt?: string;
-  status: ArticleStatus;
-  relatedBookIds?: string[];
+  updatedAt: string;
 }
-
-export type ArticleStatus = 'draft' | 'published';
 
 export interface ArticleCreate {
   id: string;
   title: string;
+  excerpt: string;
   content: string;
-  status: ArticleStatus;
-  relatedBookIds?: string[];
+  bookIds: string[];
+  relatedLinks: Array<{ text: string; url: string }>;
+  slug: string;
 }
 
 export interface ArticleUpdate {
   title?: string;
+  excerpt?: string;
   content?: string;
-  status?: ArticleStatus;
-  relatedBookIds?: string[];
+  bookIds?: string[];
+  relatedLinks?: Array<{ text: string; url: string }>;
+  slug?: string;
 }
 
 /**

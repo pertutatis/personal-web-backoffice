@@ -77,7 +77,7 @@ export function useArticles() {
   );
 
   // Exposed computed values
-  const articles = computed(() => articlesData.value?.data || []);
+  const articles = computed(() => articlesData.value?.items || []);
   const pagination = computed(() => ({
     page: articlesData.value?.page || 1,
     limit: articlesData.value?.limit || 10,

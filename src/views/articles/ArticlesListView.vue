@@ -61,7 +61,8 @@
         <thead>
           <tr>
             <th>Título</th>
-            <th>Estado</th>
+            <th>Extracto</th>
+            <th>Slug</th>
             <th>Fecha de Creación</th>
             <th>Última Actualización</th>
             <th class="actions-column">Acciones</th>
@@ -74,10 +75,11 @@
                 {{ article.title }}
               </router-link>
             </td>
-            <td>
-              <span :class="['status-badge', getStatusClass(article.status)]">
-                {{ formatStatus(article.status) }}
-              </span>
+            <td class="excerpt-column">
+              <span class="excerpt-text">{{ truncateText(article.excerpt, 50) }}</span>
+            </td>
+            <td class="slug-column">
+              <span class="slug-text">{{ article.slug }}</span>
             </td>
             <td>{{ formatDate(article.createdAt) }}</td>
             <td>{{ article.updatedAt ? formatDate(article.updatedAt) : '-' }}</td>
@@ -237,14 +239,11 @@ function changePage(page: number) {
   refetch();
 }
 
-// Formatear estados
-function formatStatus(status: ArticleStatus): string {
-  return status === 'draft' ? 'Borrador' : 'Publicado';
-}
-
-// Obtener clase CSS para el estado
-function getStatusClass(status: ArticleStatus): string {
-  return status === 'draft' ? 'status-draft' : 'status-published';
+// Función para truncar texto largo
+function truncateText(text: string, maxLength: number): string {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
 }
 
 // Formatear fechas

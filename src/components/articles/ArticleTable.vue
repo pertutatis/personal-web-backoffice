@@ -18,7 +18,10 @@
               Título
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-              Estado
+              Extracto
+            </th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+              Slug
             </th>
             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
               Fecha de creación
@@ -38,13 +41,13 @@
                 {{ article.title }}
               </div>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span
-                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                :class="getStatusClass(article.status)"
-              >
-                {{ getStatusText(article.status) }}
-              </span>
+            <td class="px-6 py-4">
+              <div class="text-sm text-gray-900 dark:text-white line-clamp-2">
+                {{ article.excerpt }}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+              {{ article.slug }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
               {{ formatDate(article.createdAt) }}
@@ -76,7 +79,7 @@
             </td>
           </tr>
           <tr v-if="articles.length === 0">
-            <td colspan="5" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+            <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
               No hay artículos disponibles
             </td>
           </tr>
@@ -202,19 +205,5 @@ const formatDate = (dateString: string): string => {
     hour: '2-digit',
     minute: '2-digit'
   }).format(date);
-};
-
-const getStatusClass = (status: string): string => {
-  if (status === 'published') {
-    return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100';
-  }
-  return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100';
-};
-
-const getStatusText = (status: string): string => {
-  if (status === 'published') {
-    return 'Publicado';
-  }
-  return 'Borrador';
 };
 </script>
