@@ -39,10 +39,10 @@ export interface Book {
   title: string;
   author: string;
   isbn: string;
-  year: number;
-  description?: string;
+  description: string;
+  purchaseLink: string | null;
   createdAt: string;
-  updatedAt?: string;
+  updatedAt: string;
 }
 
 export interface BookCreate {
@@ -50,16 +50,16 @@ export interface BookCreate {
   title: string;
   author: string;
   isbn: string;
-  year: number;
-  description?: string;
+  description: string;
+  purchaseLink?: string | null;
 }
 
 export interface BookUpdate {
   title?: string;
   author?: string;
   isbn?: string;
-  year?: number;
   description?: string;
+  purchaseLink?: string | null;
 }
 
 /**

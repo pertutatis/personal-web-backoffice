@@ -87,90 +87,47 @@
         <small v-if="errors.author" class="error-message">{{ errors.author }}</small>
       </div>
 
-      <!-- Row with 2 columns -->
-      <div class="form-row">
-        <!-- ISBN -->
-        <div class="form-group" :class="{ 'has-error': errors.isbn }">
-          <label for="book-isbn" class="form-label">ISBN *</label>
-          <input 
-            id="book-isbn"
-            type="text"
-            v-model="form.isbn"
-            :class="['form-input', { 'error': errors.isbn }]"
-            placeholder="ISBN (10 o 13 dígitos)"
-          />
-          <small v-if="errors.isbn" class="error-message">{{ errors.isbn }}</small>
-          <small v-else class="form-hint">ISBN-10 o ISBN-13 (sin guiones)</small>
-        </div>
-
-        <!-- Año de publicación -->
-        <div class="form-group" :class="{ 'has-error': errors.year }">
-          <label for="book-year" class="form-label">Año de publicación *</label>
-          <input 
-            id="book-year"
-            type="number"
-            v-model="form.year"
-            :class="['form-input', { 'error': errors.year }]"
-            placeholder="YYYY"
-            min="1800"
-            :max="currentYear"
-          />
-          <small v-if="errors.year" class="error-message">{{ errors.year }}</small>
-        </div>
-      </div>
-
-      <!-- Editorial -->
-      <div class="form-group" :class="{ 'has-error': errors.publisher }">
-        <label for="book-publisher" class="form-label">Editorial</label>
+      <!-- ISBN -->
+      <div class="form-group" :class="{ 'has-error': errors.isbn }">
+        <label for="book-isbn" class="form-label">ISBN *</label>
         <input 
-          id="book-publisher"
+          id="book-isbn"
           type="text"
-          v-model="form.publisher"
-          :class="['form-input', { 'error': errors.publisher }]"
-          placeholder="Nombre de la editorial (opcional)"
+          v-model="form.isbn"
+          :class="['form-input', { 'error': errors.isbn }]"
+          placeholder="ISBN (10 o 13 dígitos)"
         />
-        <small v-if="errors.publisher" class="error-message">{{ errors.publisher }}</small>
+        <small v-if="errors.isbn" class="error-message">{{ errors.isbn }}</small>
+        <small v-else class="form-hint">ISBN-10 o ISBN-13 (sin guiones)</small>
       </div>
 
       <!-- Descripción -->
       <div class="form-group" :class="{ 'has-error': errors.description }">
-        <label for="book-description" class="form-label">Descripción</label>
+        <label for="book-description" class="form-label">Descripción *</label>
         <textarea 
           id="book-description"
           v-model="form.description"
           :class="['form-textarea', { 'error': errors.description }]"
-          placeholder="Breve descripción del libro (opcional)"
+          placeholder="Descripción del libro"
           rows="4"
         ></textarea>
         <small v-if="errors.description" class="error-message">{{ errors.description }}</small>
       </div>
 
-      <!-- URL de imagen (para futura implementación de subida) -->
-      <div class="form-group" :class="{ 'has-error': errors.coverUrl }">
-        <label for="book-cover-url" class="form-label">URL de portada</label>
+      <!-- Enlace de compra -->
+      <div class="form-group" :class="{ 'has-error': errors.purchaseLink }">
+        <label for="book-purchase-link" class="form-label">Enlace de compra</label>
         <input 
-          id="book-cover-url"
+          id="book-purchase-link"
           type="url"
-          v-model="form.coverUrl"
-          :class="['form-input', { 'error': errors.coverUrl }]"
-          placeholder="https://ejemplo.com/imagen.jpg (opcional)"
+          v-model="form.purchaseLink"
+          :class="['form-input', { 'error': errors.purchaseLink }]"
+          placeholder="https://tienda.com/libro (opcional)"
         />
-        <small v-if="errors.coverUrl" class="error-message">{{ errors.coverUrl }}</small>
-        <small v-else class="form-hint">URL de la imagen de portada</small>
+        <small v-if="errors.purchaseLink" class="error-message">{{ errors.purchaseLink }}</small>
+        <small v-else class="form-hint">URL donde se puede adquirir el libro</small>
       </div>
 
-      <!-- Vista previa de imagen -->
-      <div v-if="form.coverUrl" class="cover-preview">
-        <h3 class="preview-title">Vista previa de portada:</h3>
-        <div class="preview-container">
-          <img 
-            :src="form.coverUrl" 
-            alt="Portada del libro" 
-            class="preview-image"
-            @error="handleImageError"
-          />
-        </div>
-      </div>
 
       <!-- Acciones del formulario -->
       <div class="form-actions">
@@ -199,6 +156,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { booksApi } from '../../composables/api/booksApi';
 import { useUIStore } from '../../stores/uiStore';
 import { Book } from '../../types/models';
+import { useQueryClient } from '@tanstack/vue-query';
 
 // Props y route
 const props = defineProps<{ id?: string }>();
@@ -213,10 +171,8 @@ const form = ref({
   title: '',
   author: '',
   isbn: '',
-  year: new Date().getFullYear(),
-  publisher: '',
   description: '',
-  coverUrl: ''
+  purchaseLink: null as string | null
 });
 
 // Estado de UI
@@ -224,8 +180,6 @@ const isLoading = ref(false);
 const isSaving = ref(false);
 const loadError = ref('');
 const errors = ref<Record<string, string>>({});
-const currentYear = new Date().getFullYear();
-const imageError = ref(false);
 
 // Computados
 const isEditMode = computed(() => Boolean(bookId.value));
@@ -279,6 +233,16 @@ function normalizeIsbn(isbn: string): string {
   return isbn.replace(/[- ]/g, '');
 }
 
+// Validar URL
+function isValidUrl(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function validateForm() {
   const newErrors: Record<string, string> = {};
   
@@ -290,6 +254,8 @@ function validateForm() {
   
   if (!form.value.author.trim()) {
     newErrors.author = 'El autor es obligatorio';
+  } else if (form.value.author.length > 100) {
+    newErrors.author = 'El autor no puede exceder los 100 caracteres';
   }
   
   // Validar ISBN
@@ -304,17 +270,14 @@ function validateForm() {
     newErrors.isbn = 'ISBN-13 no válido';
   }
   
-  // Validar año
-  const yearNum = Number(form.value.year);
-  if (!form.value.year) {
-    newErrors.year = 'El año es obligatorio';
-  } else if (isNaN(yearNum) || yearNum < 1800 || yearNum > currentYear) {
-    newErrors.year = `El año debe estar entre 1800 y ${currentYear}`;
+  // Validar descripción
+  if (!form.value.description.trim()) {
+    newErrors.description = 'La descripción es obligatoria';
   }
   
-  // Validar URL de portada si se proporciona
-  if (form.value.coverUrl && !/^https?:\/\/.+/.test(form.value.coverUrl)) {
-    newErrors.coverUrl = 'La URL de la portada debe ser válida y comenzar con http:// o https://';
+  // Validar enlace de compra si está presente
+  if (form.value.purchaseLink && !isValidUrl(form.value.purchaseLink)) {
+    newErrors.purchaseLink = 'El enlace de compra debe ser una URL válida';
   }
   
   errors.value = newErrors;
@@ -323,14 +286,6 @@ function validateForm() {
 
 function regenerateId() {
   form.value.id = uuidv4();
-}
-
-function handleImageError() {
-  imageError.value = true;
-  uiStore.addNotification({
-    type: 'warning',
-    message: 'No se pudo cargar la imagen de portada. Verifica la URL.'
-  });
 }
 
 async function loadBook() {
@@ -348,10 +303,8 @@ async function loadBook() {
       title: book.title,
       author: book.author,
       isbn: book.isbn,
-      year: book.year,
-      publisher: book.publisher || '',
-      description: book.description || '',
-      coverUrl: book.coverUrl || ''
+      description: book.description,
+      purchaseLink: book.purchaseLink
     };
     
   } catch (err: any) {
@@ -380,10 +333,8 @@ async function saveBook() {
         title: form.value.title,
         author: form.value.author,
         isbn: form.value.isbn,
-        year: Number(form.value.year),
-        publisher: form.value.publisher || undefined,
-        description: form.value.description || undefined,
-        coverUrl: form.value.coverUrl || undefined
+        description: form.value.description,
+        purchaseLink: form.value.purchaseLink
       });
       
       uiStore.addNotification({
@@ -397,11 +348,13 @@ async function saveBook() {
         title: form.value.title,
         author: form.value.author,
         isbn: form.value.isbn,
-        year: Number(form.value.year),
-        publisher: form.value.publisher || undefined,
-        description: form.value.description || undefined,
-        coverUrl: form.value.coverUrl || undefined
+        description: form.value.description,
+        purchaseLink: form.value.purchaseLink
       });
+      
+      // Invalidar la caché de consultas para reflejar el nuevo libro
+      const queryClient = useQueryClient();
+      queryClient.invalidateQueries({ queryKey: ["books"] });
       
       uiStore.addNotification({
         type: 'success',
@@ -457,23 +410,22 @@ watch(
 );
 
 watch(
-  () => form.value.year,
+  () => form.value.description,
   () => {
-    if (errors.value.year) {
-      const { year, ...rest } = errors.value;
+    if (errors.value.description) {
+      const { description, ...rest } = errors.value;
       errors.value = rest;
     }
   }
 );
 
 watch(
-  () => form.value.coverUrl,
+  () => form.value.purchaseLink,
   () => {
-    if (errors.value.coverUrl) {
-      const { coverUrl, ...rest } = errors.value;
+    if (errors.value.purchaseLink) {
+      const { purchaseLink, ...rest } = errors.value;
       errors.value = rest;
     }
-    imageError.value = false;
   }
 );
 

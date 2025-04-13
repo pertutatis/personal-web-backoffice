@@ -13,7 +13,7 @@
       <p>Error al cargar el libro: {{ error }}</p>
     </div>
 
-    <div v-else-if="book" class="bg-white shadow rounded-lg p-6">
+    <div v-else-if="book" class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="md:col-span-1">
           <img
@@ -22,8 +22,8 @@
             :alt="book.title"
             class="w-full h-auto rounded"
           />
-          <div v-else class="bg-gray-200 rounded p-12 text-center">
-            <span class="text-gray-500">Sin imagen de portada</span>
+          <div v-else class="bg-gray-200 dark:bg-gray-700 rounded p-12 text-center">
+            <span class="text-gray-500 dark:text-gray-400">Sin imagen de portada</span>
           </div>
         </div>
 
@@ -40,68 +40,96 @@
             </div>
 
             <div>
-              <dt class="text-sm font-medium text-gray-500">Fecha de publicación</dt>
-              <dd class="mt-1">{{ formatDate(book.publicationDate) }}</dd>
-            </div>
-
-            <div>
-              <dt class="text-sm font-medium text-gray-500">Género</dt>
-              <dd class="mt-1">{{ book.genre }}</dd>
-            </div>
-
-            <div>
               <dt class="text-sm font-medium text-gray-500">ISBN</dt>
-              <dd class="mt-1">{{ book.isbn }}</dd>
+              <dd class="mt-1">{{ formatIsbn(book.isbn) }}</dd>
             </div>
-
+            
             <div>
               <dt class="text-sm font-medium text-gray-500">Descripción</dt>
               <dd class="mt-1" v-html="renderMarkdown(book.description)"></dd>
             </div>
+            
+            <div v-if="book.purchaseLink">
+              <dt class="text-sm font-medium text-gray-500">Enlace de compra</dt>
+              <dd class="mt-1">
+                <a :href="book.purchaseLink" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
+                  {{ book.purchaseLink }}
+                </a>
+              </dd>
+            </div>
+
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Fecha de creación</dt>
+              <dd class="mt-1">{{ formatDate(book.createdAt) }}</dd>
+            </div>
+
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Última actualización</dt>
+              <dd class="mt-1">{{ book.updatedAt ? formatDate(book.updatedAt) : 'No actualizado' }}</dd>
+            </div>
           </dl>
 
           <div class="mt-6 flex space-x-3">
-            <BaseButton
+            <router-link
               :to="`/libros/${id}/editar`"
-              variant="primary"
-              label="Editar"
-              icon="edit"
-            />
-            <BaseButton
-              variant="danger"
-              label="Eliminar"
-              icon="trash"
+              class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Editar
+            </router-link>
+            <button
               @click="openDeleteDialog"
-            />
-            <BaseButton :to="`/libros`" variant="secondary" label="Volver" />
+              class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Eliminar
+            </button>
+            <router-link
+              :to="`/libros`"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Volver
+            </router-link>
           </div>
         </div>
       </div>
     </div>
 
-    <BaseModal
-      :show="showDeleteModal"
-      title="Eliminar libro"
-      @close="showDeleteModal = false"
-    >
-      <p>
-        ¿Estás seguro de que deseas eliminar el libro "{{ book?.title }}"? Esta acción no
-        se puede deshacer.
-      </p>
-      <template #footer>
-        <BaseButton
-          variant="secondary"
-          label="Cancelar"
-          @click="showDeleteModal = false"
-        />
-        <BaseButton
-          variant="danger"
-          label="Eliminar"
-          :is-loading="isDeleting"
-          @click="deleteBook"
-        />
-      </template>
-    </BaseModal>
+    <Teleport to="body">
+      <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Eliminar libro</h3>
+          
+          <p class="mt-3 text-gray-600 dark:text-gray-300">
+            ¿Estás seguro de que deseas eliminar el libro "{{ book?.title }}"? Esta acción no
+            se puede deshacer.
+          </p>
+          
+          <div class="mt-6 flex justify-end space-x-3">
+            <button 
+              @click="showDeleteModal = false"
+              class="min-w-[80px] rounded-md border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            >
+              Cancelar
+            </button>
+            <button 
+              @click="deleteBook"
+              :disabled="isDeleting"
+              class="min-w-[80px] rounded-md bg-red-600 px-4 py-2 font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-red-400"
+            >
+              {{ isDeleting ? 'Eliminando...' : 'Eliminar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -114,9 +142,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
 import BaseButton from "@/components/ui/BaseButton.vue";
 import BaseModal from "@/components/ui/BaseModal.vue";
 import { useBooks } from "@/composables/api/useBooks";
+import { useUIStore } from "@/stores/uiStore";
 
 const route = useRoute();
 const router = useRouter();
+const uiStore = useUIStore();
+const queryClient = useQueryClient(); // Mover aquí la inicialización de queryClient
 const id = computed(() => route.params.id as string);
 
 // Usar el composable useBooks
@@ -127,11 +158,14 @@ const isDeleting = ref(false);
 // Obtener datos para el libro actual usando getBookById
 const { data: book, isLoading, error } = getBookById(id.value);
 
+// Importar booksApi directamente
+import { booksApi } from "@/composables/api/booksApi";
+
 // Crear mutación para eliminar directamente desde la API
 const { mutate: deleteBookById } = useMutation({
   mutationFn: (id: string) => booksApi.deleteBook(id),
   onSuccess: () => {
-    // Invalidar consultas relevantes truseMutation
+    // Invalidar consultas relevantes tras una mutación
     const queryClient = useQueryClient();
     queryClient.invalidateQueries({ queryKey: ["books"] });
   },
@@ -144,6 +178,23 @@ const formatDate = (date: string) => {
     month: "long",
     day: "numeric",
   });
+};
+
+// Formatea ISBN para mejor legibilidad
+const formatIsbn = (isbn: string): string => {
+  if (!isbn) return '';
+  
+  // ISBN-13 (después del 2007): 978-3-16-148410-0
+  if (isbn.length === 13) {
+    return `${isbn.slice(0, 3)}-${isbn.slice(3, 4)}-${isbn.slice(4, 6)}-${isbn.slice(6, 12)}-${isbn.slice(12)}`;
+  }
+  
+  // ISBN-10 (antes del 2007): 3-16-148410-X
+  if (isbn.length === 10) {
+    return `${isbn.slice(0, 1)}-${isbn.slice(1, 3)}-${isbn.slice(3, 9)}-${isbn.slice(9)}`;
+  }
+  
+  return isbn; // Devolver sin formato si no encaja en los formatos conocidos
 };
 
 // Renderizar markdown de forma segura
@@ -162,10 +213,28 @@ const openDeleteDialog = () => {
 const deleteBook = async () => {
   isDeleting.value = true;
   try {
-    await deleteBookById(id.value);
-    router.push({ name: "books" });
+    // Usar directamente booksApi en lugar de la mutación
+    await booksApi.deleteBook(id.value);
+    
+    // Invalidar consultas tras eliminación exitosa
+    const queryClient = useQueryClient();
+    queryClient.invalidateQueries({ queryKey: ["books"] });
+    
+    // Mostrar notificación de éxito
+    uiStore.addNotification({
+      type: 'success',
+      message: `El libro ha sido eliminado correctamente.`
+    });
+    
+    // Redirección explícita a la ruta de libros
+    router.push('/libros');
   } catch (e) {
     console.error("Error al eliminar libro:", e);
+    // Mostrar notificación de error
+    uiStore.addNotification({
+      type: 'error',
+      message: `Error al eliminar el libro: ${e.message || 'Error desconocido'}`
+    });
   } finally {
     isDeleting.value = false;
     showDeleteModal.value = false;

@@ -50,6 +50,23 @@ const processResponse = async <T>(response: Response): Promise<T> => {
 
     throw errorData;
   }
+  
+  // Para respuestas exitosas, verificar si hay contenido antes de parsearlo
+  const contentType = response.headers.get('content-type');
+  
+  // Si es respuesta vacía (como en 201 Created o 204 No Content)
+  if (response.status === 204 || response.status === 201) {
+    // Si explícitamente estamos esperando void, devolvemos undefined
+    if (typeof undefined as unknown as T === undefined) {
+      return undefined as unknown as T;
+    }
+    
+    // Si el tipo de contenido no es JSON o no hay contenido, devolvemos un objeto vacío
+    if (!contentType || !contentType.includes('application/json') || response.headers.get('content-length') === '0') {
+      return {} as T;
+    }
+  }
+  
 
   // Si la respuesta es 204 No Content o vacía, devolvemos un objeto vacío
   if (response.status === 204 || response.headers.get('content-length') === '0') {

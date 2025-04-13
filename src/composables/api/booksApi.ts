@@ -23,9 +23,11 @@ export const booksApi = {
 
   /**
    * Crea un nuevo libro
+   * @returns Promise que se resuelve cuando la creación es exitosa
+   * No espera un cuerpo de respuesta, solo maneja el código 201
    */
-  createBook(book: BookCreate): Promise<Book> {
-    return httpClient.post<Book>(BOOKS_ENDPOINT, book);
+  createBook(book: BookCreate): Promise<void> {
+    return httpClient.post<void>(BOOKS_ENDPOINT, book);
   },
 
   /**

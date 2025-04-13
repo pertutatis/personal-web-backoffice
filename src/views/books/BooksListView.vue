@@ -63,7 +63,6 @@
             <th>Título</th>
             <th>Autor</th>
             <th>ISBN</th>
-            <th>Año</th>
             <th>Fecha de Creación</th>
             <th class="actions-column">Acciones</th>
           </tr>
@@ -79,7 +78,6 @@
             <td class="isbn-column">
               <span class="isbn-code">{{ formatIsbn(book.isbn) }}</span>
             </td>
-            <td>{{ book.year }}</td>
             <td>{{ formatDate(book.createdAt) }}</td>
             <td class="actions-column">
               <div class="actions-container">
