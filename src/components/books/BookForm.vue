@@ -1,9 +1,9 @@
 <template>
   <div class="book-form">
     <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-      <h2 class="text-2xl font-bold mb-6">{{ isEditMode ? 'Editar libro' : 'Crear nuevo libro' }}</h2>
+      <h2 class="text-2xl font-bold mb-6" data-cy="book-form-title">{{ isEditMode ? 'Editar libro' : 'Crear nuevo libro' }}</h2>
 
-      <Form @submit="onSubmit" :validation-schema="validationSchema" v-slot="{ errors, isSubmitting }">
+      <Form @submit="onSubmit" :validation-schema="validationSchema" v-slot="{ errors, isSubmitting }" data-cy="book-form">
         <!-- Título -->
         <div class="mb-4">
           <label for="title" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -14,10 +14,11 @@
             name="title"
             type="text"
             v-model="formData.title"
+            data-cy="book-title-input"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             :class="{ 'border-red-500 focus:ring-red-500': errors.title }"
           />
-          <ErrorMessage name="title" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+          <ErrorMessage name="title" class="mt-1 text-sm text-red-600 dark:text-red-400" data-cy="book-title-error" />
         </div>
 
         <!-- Autor -->
@@ -30,10 +31,11 @@
             name="author"
             type="text"
             v-model="formData.author"
+            data-cy="book-author-input"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             :class="{ 'border-red-500 focus:ring-red-500': errors.author }"
           />
-          <ErrorMessage name="author" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+          <ErrorMessage name="author" class="mt-1 text-sm text-red-600 dark:text-red-400" data-cy="book-author-error" />
         </div>
 
         <!-- ISBN -->
@@ -46,11 +48,12 @@
             name="isbn"
             type="text"
             v-model="formData.isbn"
+            data-cy="book-isbn-input"
             placeholder="Formato ISBN-10 o ISBN-13"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white font-mono"
             :class="{ 'border-red-500 focus:ring-red-500': errors.isbn }"
           />
-          <ErrorMessage name="isbn" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+          <ErrorMessage name="isbn" class="mt-1 text-sm text-red-600 dark:text-red-400" data-cy="book-isbn-error" />
           <p v-if="!errors.isbn" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
             Introduce el ISBN sin guiones. Se aceptan ISBN-10 (10 dígitos) e ISBN-13 (13 dígitos).
           </p>
@@ -66,10 +69,11 @@
             name="year"
             type="number"
             v-model="formData.year"
+            data-cy="book-year-input"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             :class="{ 'border-red-500 focus:ring-red-500': errors.year }"
           />
-          <ErrorMessage name="year" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+          <ErrorMessage name="year" class="mt-1 text-sm text-red-600 dark:text-red-400" data-cy="book-year-error" />
         </div>
 
         <!-- Descripción -->
@@ -82,11 +86,12 @@
             id="description"
             name="description"
             v-model="formData.description"
+            data-cy="book-description-input"
             rows="6"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             :class="{ 'border-red-500 focus:ring-red-500': errors.description }"
           />
-          <ErrorMessage name="description" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+          <ErrorMessage name="description" class="mt-1 text-sm text-red-600 dark:text-red-400" data-cy="book-description-error" />
         </div>
 
         <!-- Artículos relacionados (solo en modo edición) -->
@@ -112,6 +117,7 @@
         <div class="flex justify-end space-x-3 mt-8">
           <router-link
             :to="{ path: '/books' }"
+            data-cy="book-cancel-button"
             class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             Cancelar
@@ -119,6 +125,7 @@
           <button
             type="submit"
             :disabled="isSubmitting"
+            data-cy="book-submit-button"
             class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
             {{ isSubmitting ? 'Guardando...' : 'Guardar' }}

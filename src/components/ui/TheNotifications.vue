@@ -1,17 +1,20 @@
 <template>
-  <div class="notifications-container">
+  <div class="notifications-container" data-cy="notifications-container">
     <TransitionGroup name="notification">
       <div 
         v-for="notification in notifications" 
         :key="notification.id" 
         :class="['notification', notificationTypeClass(notification.type)]"
+        :data-cy="`notification-${notification.type}`"
+        data-cy="notification"
       >
         <div class="notification-content">
-          <span class="notification-message">{{ notification.message }}</span>
+          <span class="notification-message" data-cy="notification-message">{{ notification.message }}</span>
         </div>
         <button 
           @click="dismissNotification(notification.id)" 
           class="notification-dismiss"
+          data-cy="notification-dismiss"
           aria-label="Cerrar notificación"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

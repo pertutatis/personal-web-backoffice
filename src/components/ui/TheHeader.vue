@@ -1,8 +1,9 @@
 <template>
-  <header class="header">
+  <header class="header" data-cy="header">
     <div class="flex items-center">
       <button 
         @click="toggleSidebar"
+        data-cy="menu-toggle"
         class="mr-4 rounded p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
         aria-label="Toggle sidebar"
       >
@@ -10,11 +11,12 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
         </svg>
       </button>
-      <h1 class="text-xl font-bold">{{ pageTitle }}</h1>
+      <h1 class="text-xl font-bold" data-cy="page-title">{{ pageTitle }}</h1>
     </div>
     <div class="flex items-center space-x-4">
       <button 
         @click="toggleTheme" 
+        data-cy="theme-toggle"
         class="rounded p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800" 
         aria-label="Toggle theme"
       >

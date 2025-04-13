@@ -1,9 +1,9 @@
 <template>
   <div class="article-form">
     <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-      <h2 class="text-2xl font-bold mb-6">{{ isEditMode ? 'Editar artículo' : 'Crear nuevo artículo' }}</h2>
+      <h2 class="text-2xl font-bold mb-6" data-cy="article-form-title">{{ isEditMode ? 'Editar artículo' : 'Crear nuevo artículo' }}</h2>
 
-      <Form @submit="onSubmit" :validation-schema="validationSchema" v-slot="{ errors, isSubmitting }">
+      <Form @submit="onSubmit" :validation-schema="validationSchema" v-slot="{ errors, isSubmitting }" data-cy="article-form">
         <!-- Título -->
         <div class="mb-6">
           <label for="title" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -14,10 +14,11 @@
             name="title"
             type="text"
             v-model="formData.title"
+            data-cy="article-title-input"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             :class="{ 'border-red-500 focus:ring-red-500': errors.title }"
           />
-          <ErrorMessage name="title" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+          <ErrorMessage name="title" class="mt-1 text-sm text-red-600 dark:text-red-400" data-cy="article-title-error" />
         </div>
 
         <!-- Slug -->
@@ -30,10 +31,11 @@
             name="slug"
             type="text"
             v-model="formData.slug"
+            data-cy="article-slug-input"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             :class="{ 'border-red-500 focus:ring-red-500': errors.slug }"
           />
-          <ErrorMessage name="slug" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+          <ErrorMessage name="slug" class="mt-1 text-sm text-red-600 dark:text-red-400" data-cy="article-slug-error" />
         </div>
 
         <!-- Extracto -->
@@ -46,11 +48,12 @@
             id="excerpt"
             name="excerpt"
             v-model="formData.excerpt"
+            data-cy="article-excerpt-input"
             rows="3"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             :class="{ 'border-red-500 focus:ring-red-500': errors.excerpt }"
           />
-          <ErrorMessage name="excerpt" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+          <ErrorMessage name="excerpt" class="mt-1 text-sm text-red-600 dark:text-red-400" data-cy="article-excerpt-error" />
         </div>
 
         <!-- Contenido (markdown) -->

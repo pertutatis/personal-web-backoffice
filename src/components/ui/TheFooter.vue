@@ -1,7 +1,7 @@
 <template>
-  <footer class="footer">
+  <footer class="footer" data-cy="footer">
     <div class="container">
-      <p>&copy; {{ currentYear }} Blog Personal - Backoffice v1.0.0</p>
+      <p data-cy="footer-copyright">&copy; {{ currentYear }} Blog Personal - Backoffice v1.0.0</p>
     </div>
   </footer>
 </template>
