@@ -147,7 +147,7 @@ import { useUIStore } from "@/stores/uiStore";
 const route = useRoute();
 const router = useRouter();
 const uiStore = useUIStore();
-const queryClient = useQueryClient(); // Mover aquí la inicialización de queryClient
+const queryClient = useQueryClient(); // Inicialización de queryClient en nivel superior
 const id = computed(() => route.params.id as string);
 
 // Usar el composable useBooks
@@ -165,8 +165,7 @@ import { booksApi } from "@/composables/api/booksApi";
 const { mutate: deleteBookById } = useMutation({
   mutationFn: (id: string) => booksApi.deleteBook(id),
   onSuccess: () => {
-    // Invalidar consultas relevantes tras una mutación
-    const queryClient = useQueryClient();
+    // Invalidar consultas relevantes tras una mutación usando la instancia ya creada
     queryClient.invalidateQueries({ queryKey: ["books"] });
   },
 });
@@ -210,34 +209,37 @@ const openDeleteDialog = () => {
 };
 
 // Eliminar libro
-const deleteBook = async () => {
+const deleteBook = () => {
   isDeleting.value = true;
-  try {
-    // Usar directamente booksApi en lugar de la mutación
-    await booksApi.deleteBook(id.value);
-    
-    // Invalidar consultas tras eliminación exitosa
-    const queryClient = useQueryClient();
-    queryClient.invalidateQueries({ queryKey: ["books"] });
-    
-    // Mostrar notificación de éxito
-    uiStore.addNotification({
-      type: 'success',
-      message: `El libro ha sido eliminado correctamente.`
-    });
-    
-    // Redirección explícita a la ruta de libros
-    router.push('/libros');
-  } catch (e) {
-    console.error("Error al eliminar libro:", e);
-    // Mostrar notificación de error
-    uiStore.addNotification({
-      type: 'error',
-      message: `Error al eliminar el libro: ${e.message || 'Error desconocido'}`
-    });
-  } finally {
-    isDeleting.value = false;
-    showDeleteModal.value = false;
-  }
+  
+  // Usar la mutación creada con useMutation
+  deleteBookById(id.value, {
+    onSuccess: () => {
+      // Mostrar notificación de éxito
+      uiStore.addNotification({
+        type: 'success',
+        message: `El libro ha sido eliminado correctamente.`
+      });
+      
+      // Redirección explícita a la ruta de libros
+      router.push('/libros');
+      
+      // Cerrar modal y resetear estado
+      showDeleteModal.value = false;
+      isDeleting.value = false;
+    },
+    onError: (error) => {
+      console.error("Error al eliminar libro:", error);
+      // Mostrar notificación de error
+      uiStore.addNotification({
+        type: 'error',
+        message: `Error al eliminar el libro: ${error.message || 'Error desconocido'}`
+      });
+      
+      // Resetear estado
+      isDeleting.value = false;
+      showDeleteModal.value = false;
+    }
+  });
 };
 </script>

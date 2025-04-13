@@ -156,13 +156,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { booksApi } from '../../composables/api/booksApi';
 import { useUIStore } from '../../stores/uiStore';
 import { Book } from '../../types/models';
-import { useQueryClient } from '@tanstack/vue-query';
+import { useQueryClient, useMutation } from '@tanstack/vue-query';
 
 // Props y route
 const props = defineProps<{ id?: string }>();
 const route = useRoute();
 const router = useRouter();
 const uiStore = useUIStore();
+const queryClient = useQueryClient(); // Inicializar queryClient en el nivel superior
 const { id } = toRefs(props);
 
 // Estado del formulario
@@ -318,7 +319,46 @@ async function loadBook() {
   }
 }
 
-async function saveBook() {
+// Crear mutación para actualizar un libro
+const { mutate: updateBook } = useMutation({
+  mutationFn: (data: { id: string, bookData: Partial<Book> }) => 
+    booksApi.updateBook(data.id, data.bookData),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["books"] });
+    uiStore.addNotification({
+      type: 'success',
+      message: 'Libro actualizado correctamente'
+    });
+    router.push('/libros');
+  },
+  onError: (error: Error) => {
+    uiStore.addNotification({
+      type: 'error',
+      message: `Error al actualizar el libro: ${error.message || 'Error desconocido'}`
+    });
+  }
+});
+
+// Crear mutación para crear un libro
+const { mutate: createBook } = useMutation({
+  mutationFn: (bookData: Book) => booksApi.createBook(bookData),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["books"] });
+    uiStore.addNotification({
+      type: 'success',
+      message: 'Libro creado correctamente'
+    });
+    router.push('/libros');
+  },
+  onError: (error: Error) => {
+    uiStore.addNotification({
+      type: 'error',
+      message: `Error al crear el libro: ${error.message || 'Error desconocido'}`
+    });
+  }
+});
+
+function saveBook() {
   if (!validateForm()) return;
   
   // Normalizar ISBN antes de guardar
@@ -326,51 +366,36 @@ async function saveBook() {
   
   isSaving.value = true;
   
-  try {
-    if (isEditMode.value) {
-      // Actualizar libro existente
-      await booksApi.updateBook(bookId.value, {
+  if (isEditMode.value) {
+    // Actualizar libro existente usando la mutación
+    updateBook({
+      id: bookId.value,
+      bookData: {
         title: form.value.title,
         author: form.value.author,
         isbn: form.value.isbn,
         description: form.value.description,
         purchaseLink: form.value.purchaseLink
-      });
-      
-      uiStore.addNotification({
-        type: 'success',
-        message: 'Libro actualizado correctamente'
-      });
-    } else {
-      // Crear nuevo libro
-      await booksApi.createBook({
-        id: form.value.id,
-        title: form.value.title,
-        author: form.value.author,
-        isbn: form.value.isbn,
-        description: form.value.description,
-        purchaseLink: form.value.purchaseLink
-      });
-      
-      // Invalidar la caché de consultas para reflejar el nuevo libro
-      const queryClient = useQueryClient();
-      queryClient.invalidateQueries({ queryKey: ["books"] });
-      
-      uiStore.addNotification({
-        type: 'success',
-        message: 'Libro creado correctamente'
-      });
-    }
-    
-    // Redireccionar al listado
-    router.push('/libros');
-  } catch (err: any) {
-    uiStore.addNotification({
-      type: 'error',
-      message: `Error al guardar el libro: ${err.message || 'Error desconocido'}`
+      }
+    }, {
+      onSettled: () => {
+        isSaving.value = false;
+      }
     });
-  } finally {
-    isSaving.value = false;
+  } else {
+    // Crear nuevo libro usando la mutación
+    createBook({
+      id: form.value.id,
+      title: form.value.title,
+      author: form.value.author,
+      isbn: form.value.isbn,
+      description: form.value.description,
+      purchaseLink: form.value.purchaseLink
+    }, {
+      onSettled: () => {
+        isSaving.value = false;
+      }
+    });
   }
 }
 
