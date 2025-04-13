@@ -39,14 +39,14 @@
               <span v-if="isLoading" class="inline-block w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span>
               <span v-else>{{ stats.totalArticles }}</span>
             </p>
-            <div class="flex justify-between items-center">
-              <span class="stat-info">
+            
+              <div class="stat-info">
                 <span v-if="stats.publishedArticles !== undefined">{{ stats.publishedArticles }} publicados</span>
-              </span>
+              </div>
               <router-link to="/articulos" class="stat-link">
                 Ver todos →
               </router-link>
-            </div>
+            
           </div>
         </div>
 
@@ -63,61 +63,17 @@
               <span v-if="isLoading" class="inline-block w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span>
               <span v-else>{{ stats.totalBooks }}</span>
             </p>
-            <div class="flex justify-between items-center">
-              <span class="stat-info">
+            
+              <div class="stat-info">
                 <span v-if="stats.recentBooks !== undefined">{{ stats.recentBooks }} nuevos este mes</span>
-              </span>
+              </div>
               <router-link to="/libros" class="stat-link">
                 Ver todos →
               </router-link>
-            </div>
+            
           </div>
         </div>
-        
-        <!-- Artículos publicados vs borradores -->
-        <div class="stat-card" :class="{ 'loading': isLoading }">
-          <div class="stat-icon bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <h3 class="stat-title">Artículos Publicados</h3>
-            <p class="stat-value">
-              <span v-if="isLoading" class="inline-block w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span>
-              <span v-else>{{ stats.publishedArticles }}</span>
-            </p>
-            <div class="flex justify-between items-center">
-              <span class="stat-info">
-                <span v-if="stats.draftArticles !== undefined">{{ stats.draftArticles }} borradores</span>
-              </span>
-              <div class="text-sm text-green-600 dark:text-green-400">
-                {{ stats.publishedArticles && stats.totalArticles ? Math.round(stats.publishedArticles / stats.totalArticles * 100) : 0 }}%
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Fecha de última actualización -->
-        <div class="stat-card" :class="{ 'loading': isLoading }">
-          <div class="stat-icon bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <div class="stat-content">
-            <h3 class="stat-title">Última Actualización</h3>
-            <p class="stat-value">
-              <span v-if="isLoading" class="inline-block w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span>
-              <span v-else>{{ formatDate(stats.lastUpdate) }}</span>
-            </p>
-            <div class="flex justify-between items-center">
-              <span class="stat-info">
-                Contenido actualizado
-              </span>
-            </div>
-          </div>
-        </div>
+    
       </div>
     </section>
 
@@ -277,7 +233,7 @@ onMounted(async () => {
 }
 
 .stats-grid {
-  @apply grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4;
+  @apply grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2;
 }
 
 .stat-card {
