@@ -66,11 +66,12 @@
             id="content"
             name="content"
             v-model="formData.content"
+            data-cy="article-content-input"
             rows="10"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white font-mono"
             :class="{ 'border-red-500 focus:ring-red-500': errors.content }"
           />
-          <ErrorMessage name="content" class="mt-1 text-sm text-red-600 dark:text-red-400" />
+          <ErrorMessage name="content" class="mt-1 text-sm text-red-600 dark:text-red-400" data-cy="article-content-error" />
         </div>
 
         <!-- Libros relacionados -->
@@ -144,6 +145,7 @@
         <div class="flex justify-end space-x-3 mt-8">
           <router-link
             :to="{ path: '/articles' }"
+            data-cy="article-cancel-button"
             class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             Cancelar
@@ -151,6 +153,7 @@
           <button
             type="submit"
             :disabled="isSubmitting"
+            data-cy="article-submit-button"
             class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
             {{ isSubmitting ? 'Guardando...' : 'Guardar' }}

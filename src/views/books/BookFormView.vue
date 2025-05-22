@@ -68,10 +68,11 @@
           id="book-title"
           type="text"
           v-model="form.title"
+          data-cy="book-title-input"
           :class="['form-input', { 'error': errors.title }]"
           placeholder="Introduce el título del libro"
         />
-        <small v-if="errors.title" class="error-message">{{ errors.title }}</small>
+        <small v-if="errors.title" class="error-message" data-cy="book-title-error">{{ errors.title }}</small>
       </div>
 
       <!-- Autor -->
@@ -81,10 +82,11 @@
           id="book-author"
           type="text"
           v-model="form.author"
+          data-cy="book-author-input"
           :class="['form-input', { 'error': errors.author }]"
           placeholder="Nombre del autor"
         />
-        <small v-if="errors.author" class="error-message">{{ errors.author }}</small>
+        <small v-if="errors.author" class="error-message" data-cy="book-author-error">{{ errors.author }}</small>
       </div>
 
       <!-- ISBN -->
@@ -94,11 +96,28 @@
           id="book-isbn"
           type="text"
           v-model="form.isbn"
+          data-cy="book-isbn-input"
           :class="['form-input', { 'error': errors.isbn }]"
           placeholder="ISBN (10 o 13 dígitos)"
         />
-        <small v-if="errors.isbn" class="error-message">{{ errors.isbn }}</small>
+        <small v-if="errors.isbn" class="error-message" data-cy="book-isbn-error">{{ errors.isbn }}</small>
         <small v-else class="form-hint">ISBN-10 o ISBN-13 (sin guiones)</small>
+      </div>
+
+      <!-- Año de publicación -->
+      <div class="form-group" :class="{ 'has-error': errors.year }">
+        <label for="book-year" class="form-label">Año de publicación</label>
+        <input 
+          id="book-year"
+          type="number"
+          v-model="form.year"
+          data-cy="book-year-input"
+          :class="['form-input', { 'error': errors.year }]"
+          placeholder="Año de publicación"
+          min="1000"
+          max="2100"
+        />
+        <small v-if="errors.year" class="error-message" data-cy="book-year-error">{{ errors.year }}</small>
       </div>
 
       <!-- Descripción -->
@@ -107,11 +126,12 @@
         <textarea 
           id="book-description"
           v-model="form.description"
+          data-cy="book-description-input"
           :class="['form-textarea', { 'error': errors.description }]"
           placeholder="Descripción del libro"
           rows="4"
         ></textarea>
-        <small v-if="errors.description" class="error-message">{{ errors.description }}</small>
+        <small v-if="errors.description" class="error-message" data-cy="book-description-error">{{ errors.description }}</small>
       </div>
 
       <!-- Enlace de compra -->
@@ -121,20 +141,21 @@
           id="book-purchase-link"
           type="url"
           v-model="form.purchaseLink"
+          data-cy="book-purchase-link-input"
           :class="['form-input', { 'error': errors.purchaseLink }]"
           placeholder="https://tienda.com/libro (opcional)"
         />
-        <small v-if="errors.purchaseLink" class="error-message">{{ errors.purchaseLink }}</small>
+        <small v-if="errors.purchaseLink" class="error-message" data-cy="book-purchase-link-error">{{ errors.purchaseLink }}</small>
         <small v-else class="form-hint">URL donde se puede adquirir el libro</small>
       </div>
 
 
       <!-- Acciones del formulario -->
       <div class="form-actions">
-        <button type="button" @click="cancel" class="cancel-button">
+        <button type="button" @click="cancel" class="cancel-button" data-cy="book-cancel-button">
           Cancelar
         </button>
-        <button type="submit" class="save-button" :disabled="isSaving || hasErrors">
+        <button type="submit" class="save-button" :disabled="isSaving || hasErrors" data-cy="book-submit-button">
           <span v-if="isSaving">
             <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

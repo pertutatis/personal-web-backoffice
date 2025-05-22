@@ -172,16 +172,16 @@ export function useArticles() {
 
   return {
     list: useQuery(['articles'],
-      (params: PaginationParams) => api.get('/blog/articles', { params }),
+      (params: PaginationParams) => api.get('/backoffice/articles', { params }),
       { keepPreviousData: true }
     ),
     
     get: useQuery(['article'],
-      (id: string) => api.get(`/blog/articles/${id}`),
+      (id: string) => api.get(`/backoffice/articles/${id}`),
     ),
     
     create: useMutation(
-      (data: CreateArticleDto) => api.post('/blog/articles', data),
+      (data: CreateArticleDto) => api.post('/backoffice/articles', data),
       {
         onSuccess: () => {
           queryClient.invalidateQueries(['articles']);
@@ -191,7 +191,7 @@ export function useArticles() {
     
     update: useMutation(
       ({ id, data }: { id: string; data: UpdateArticleDto }) =>
-        api.put(`/blog/articles/${id}`, data),
+        api.put(`/backoffice/articles/${id}`, data),
       {
         onSuccess: () => {
           queryClient.invalidateQueries(['articles']);
@@ -200,7 +200,7 @@ export function useArticles() {
     ),
     
     delete: useMutation(
-      (id: string) => api.delete(`/blog/articles/${id}`),
+      (id: string) => api.delete(`/backoffice/articles/${id}`),
       {
         onSuccess: () => {
           queryClient.invalidateQueries(['articles']);

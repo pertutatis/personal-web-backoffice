@@ -50,7 +50,7 @@
     <div v-else-if="article" class="article-content">
       <!-- Encabezado y metadata -->
       <div class="article-header">
-        <h1 class="article-title">{{ article.title }}</h1>
+        <h1 class="article-title" data-cy="article-title">{{ article.title }}</h1>
         <div class="article-slug">
           <span class="slug-label">Slug:</span>
           <span class="slug-value">{{ article.slug }}</span>

@@ -4,7 +4,7 @@
 import { httpClient } from '../../utils/httpClient';
 import { Article, ArticleCreate, ArticleUpdate, PaginatedResponse, QueryParams } from '../../types/models';
 
-const ARTICLES_ENDPOINT = '/blog/articles';
+const ARTICLES_ENDPOINT = '/backoffice/articles';
 
 export const articlesApi = {
   /**

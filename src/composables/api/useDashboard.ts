@@ -33,11 +33,11 @@ export function useDashboard() {
     try {
       // En un entorno real, esto se obtendría de una API
       // Por ahora simulamos la llamada a la API
-      const articlesResponse = await httpClient.get('/blog/articles', {
+      const articlesResponse = await httpClient.get('/backoffice/articles', {
         params: { page: 1, limit: 1 }
       });
       
-      const booksResponse = await httpClient.get('/blog/books', {
+      const booksResponse = await httpClient.get('/backoffice/books', {
         params: { page: 1, limit: 1 }
       });
 
@@ -56,7 +56,7 @@ export function useDashboard() {
 
   const fetchRecentArticles = async (): Promise<RecentItem[]> => {
     try {
-      const response = await httpClient.get('/blog/articles', {
+      const response = await httpClient.get('/backoffice/articles', {
         params: { page: 1, limit: 5, sort: 'createdAt:desc' }
       });
       
@@ -74,7 +74,7 @@ export function useDashboard() {
 
   const fetchRecentBooks = async (): Promise<RecentItem[]> => {
     try {
-      const response = await httpClient.get('/blog/books', {
+      const response = await httpClient.get('/backoffice/books', {
         params: { page: 1, limit: 5, sort: 'createdAt:desc' }
       });
       

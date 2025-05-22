@@ -33,17 +33,17 @@ Este proyecto consiste en la creación de un backoffice para gestionar artículo
 
 ## Endpoints API Principales
 1. **Artículos**:
-   - GET `/blog/articles`: Listar con paginación
-   - POST `/blog/articles`: Crear nuevo
-   - GET `/blog/articles/{id}`: Obtener uno
-   - PUT `/blog/articles/{id}`: Actualizar
-   - DELETE `/blog/articles/{id}`: Eliminar
+   - GET `/backoffice/articles`: Listar con paginación
+   - POST `/backoffice/articles`: Crear nuevo
+   - GET `/backoffice/articles/{id}`: Obtener uno
+   - PUT `/backoffice/articles/{id}`: Actualizar
+   - DELETE `/backoffice/articles/{id}`: Eliminar
 2. **Libros**:
-   - GET `/blog/books`: Listar con paginación
-   - POST `/blog/books`: Crear nuevo
-   - GET `/blog/books/{id}`: Obtener uno
-   - PUT `/blog/books/{id}`: Actualizar
-   - DELETE `/blog/books/{id}`: Eliminar
+   - GET `/backoffice/books`: Listar con paginación
+   - POST `/backoffice/books`: Crear nuevo
+   - GET `/backoffice/books/{id}`: Obtener uno
+   - PUT `/backoffice/books/{id}`: Actualizar
+   - DELETE `/backoffice/books/{id}`: Eliminar
 
 ## Decisiones Arquitectónicas Relevantes
 1. **Arquitectura Hexagonal** adaptada al frontend:

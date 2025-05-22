@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-xl font-semibold">Listado de Libros</h2>
       <router-link
-        to="/books/new"
+        to="/libros/nuevo"
         data-cy="new-book-button"
         class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
       >

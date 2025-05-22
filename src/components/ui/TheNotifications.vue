@@ -6,7 +6,7 @@
         :key="notification.id" 
         :class="['notification', notificationTypeClass(notification.type)]"
         :data-cy="`notification-${notification.type}`"
-        data-cy="notification"
+        class="notification"
       >
         <div class="notification-content">
           <span class="notification-message" data-cy="notification-message">{{ notification.message }}</span>

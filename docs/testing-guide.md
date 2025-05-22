@@ -92,7 +92,7 @@ Utilizamos MSW (Mock Service Worker) para interceptar y simular respuestas de AP
 import { rest } from 'msw'
 
 export const handlers = [
-  rest.get('/api/blog/articles', (req, res, ctx) => {
+  rest.get('/api/backoffice/articles', (req, res, ctx) => {
     return res(
       ctx.status(200),
       ctx.json({

@@ -3,6 +3,12 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 // Definición de rutas
 const routes: RouteRecordRaw[] = [
   {
+    path: '/login',
+    name: 'login',
+    component: () => import('../views/auth/LoginView.vue'),
+    meta: { title: 'Iniciar sesión', public: true }
+  },
+  {
     path: '/',
     name: 'dashboard',
     component: () => import('../views/dashboard/DashboardView.vue'),

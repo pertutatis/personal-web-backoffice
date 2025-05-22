@@ -4,7 +4,7 @@
 import { httpClient } from '../../utils/httpClient';
 import { Book, BookCreate, BookUpdate, PaginatedResponse, QueryParams } from '../../types/models';
 
-const BOOKS_ENDPOINT = '/blog/books';
+const BOOKS_ENDPOINT = '/backoffice/books';
 
 export const booksApi = {
   /**

@@ -68,10 +68,11 @@
           id="article-title"
           type="text"
           v-model="form.title"
+          data-cy="article-title-input"
           :class="['form-input', { 'error': errors.title }]"
           placeholder="Introduce el título del artículo"
         />
-        <small v-if="errors.title" class="error-message">{{ errors.title }}</small>
+        <small v-if="errors.title" class="error-message" data-cy="article-title-error">{{ errors.title }}</small>
       </div>
 
       <!-- Slug -->
@@ -81,10 +82,11 @@
           id="article-slug"
           type="text"
           v-model="form.slug"
+          data-cy="article-slug-input"
           :class="['form-input', { 'error': errors.slug }]"
           placeholder="identificador-unico-del-articulo"
         />
-        <small v-if="errors.slug" class="error-message">{{ errors.slug }}</small>
+        <small v-if="errors.slug" class="error-message" data-cy="article-slug-error">{{ errors.slug }}</small>
         <small v-else class="form-hint">URL amigable para el artículo (solo letras minúsculas, números y guiones)</small>
       </div>
       
@@ -94,11 +96,12 @@
         <textarea 
           id="article-excerpt"
           v-model="form.excerpt"
+          data-cy="article-excerpt-input"
           :class="['form-textarea', { 'error': errors.excerpt }]"
           placeholder="Breve resumen del artículo (máx. 300 caracteres)"
           rows="3"
         ></textarea>
-        <small v-if="errors.excerpt" class="error-message">{{ errors.excerpt }}</small>
+        <small v-if="errors.excerpt" class="error-message" data-cy="article-excerpt-error">{{ errors.excerpt }}</small>
         <small v-else class="form-hint">Breve descripción que aparecerá en los listados</small>
       </div>
 
@@ -150,6 +153,7 @@
               v-show="activeTab === 'write'"
               id="article-content"
               v-model="form.content"
+              data-cy="article-content-input"
               :class="['form-textarea', { 'error': errors.content }]"
               placeholder="Escribe el contenido en formato Markdown..."
               rows="15"
@@ -161,7 +165,7 @@
             ></div>
           </div>
         </div>
-        <small v-if="errors.content" class="error-message">{{ errors.content }}</small>
+        <small v-if="errors.content" class="error-message" data-cy="article-content-error">{{ errors.content }}</small>
         <small v-else class="form-hint">Soporta sintaxis <a href="https://www.markdownguide.org/basic-syntax/" target="_blank" rel="noopener noreferrer" class="hint-link">Markdown</a></small>
       </div>
 
@@ -253,10 +257,10 @@
 
       <!-- Acciones del formulario -->
       <div class="form-actions">
-        <button type="button" @click="cancel" class="cancel-button">
+        <button type="button" @click="cancel" class="cancel-button" data-cy="article-cancel-button">
           Cancelar
         </button>
-        <button type="submit" class="save-button" :disabled="isSaving || hasErrors">
+        <button type="submit" class="save-button" :disabled="isSaving || hasErrors" data-cy="article-submit-button">
           <span v-if="isSaving">
             <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

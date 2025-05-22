@@ -31,7 +31,7 @@
           <dl class="space-y-4">
             <div>
               <dt class="text-sm font-medium text-gray-500">Título</dt>
-              <dd class="mt-1 text-lg">{{ book.title }}</dd>
+              <dd class="mt-1 text-lg" data-cy="book-title">{{ book.title }}</dd>
             </div>
 
             <div>
