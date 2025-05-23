@@ -1,99 +1,144 @@
-// Interfaces principales para el dominio
-
-/**
- * Artículo del blog
- */
-export interface Article {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  bookIds: string[];
-  relatedLinks: Array<{ text: string; url: string }>;
-  slug: string;
-  createdAt: string;
-  updatedAt: string;
+// Tipos base
+export interface BaseModel {
+  id: string
+  createdAt: string
+  updatedAt: string
 }
 
+// Tipos para artículos
+export enum ArticleStatus {
+  DRAFT = 'DRAFT',
+  PUBLISHED = 'PUBLISHED',
+  ARCHIVED = 'ARCHIVED'
+}
+
+export interface RelatedLink {
+  text: string
+  url: string
+}
+
+export interface Article extends BaseModel {
+  title: string
+  slug: string
+  content: string
+  excerpt: string
+  status: ArticleStatus
+  bookIds: string[]
+  relatedLinks: RelatedLink[]
+}
+
+// Permitir id y slug opcionales en la creación
 export interface ArticleCreate {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  bookIds: string[];
-  relatedLinks: Array<{ text: string; url: string }>;
-  slug: string;
+  id?: string
+  title: string
+  content: string
+  excerpt: string
+  status: ArticleStatus
+  slug?: string
+  bookIds?: string[]
+  relatedLinks?: RelatedLink[]
 }
 
 export interface ArticleUpdate {
-  title?: string;
-  excerpt?: string;
-  content?: string;
-  bookIds?: string[];
-  relatedLinks?: Array<{ text: string; url: string }>;
-  slug?: string;
+  title?: string
+  content?: string
+  excerpt?: string
+  status?: ArticleStatus
+  slug?: string
+  bookIds?: string[]
+  relatedLinks?: RelatedLink[]
 }
 
-/**
- * Libro de la biblioteca
- */
-export interface Book {
-  id: string;
-  title: string;
-  author: string;
-  isbn: string;
-  description: string;
-  purchaseLink: string | null;
-  createdAt: string;
-  updatedAt: string;
+// Tipos para libros
+export interface Book extends BaseModel {
+  title: string
+  author: string
+  isbn: string
+  description: string
+  purchaseLink: string | null
+  year: number
+  imageUrl: string | null
 }
 
+// Permitir id opcional en la creación
 export interface BookCreate {
-  id: string;
-  title: string;
-  author: string;
-  isbn: string;
-  description: string;
-  purchaseLink?: string | null;
+  id?: string
+  title: string
+  author: string
+  isbn: string
+  description: string
+  purchaseLink?: string | null
+  year: number
+  imageUrl?: string | null
 }
 
 export interface BookUpdate {
-  title?: string;
-  author?: string;
-  isbn?: string;
-  description?: string;
-  purchaseLink?: string | null;
+  title?: string
+  author?: string
+  isbn?: string
+  description?: string
+  purchaseLink?: string | null
+  year?: number
+  imageUrl?: string | null
 }
 
-/**
- * Respuesta paginada para listados
- */
+// Tipos para paginación
+export interface PaginationParams {
+  page?: number
+  limit?: number
+  search?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}
+
 export interface PaginatedResponse<T> {
-  items: T[];
-  total: number;
-  page: number;
-  limit: number;
-  pages: number;
+  items: T[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+  hasMore: boolean
 }
 
-/**
- * Parámetros de consulta para paginación y filtrado
- */
-export interface QueryParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-  [key: string]: any;
+// Estados de carga
+export interface LoadingState {
+  isLoading: boolean
+  error: string | null
 }
 
-/**
- * Error de API
- */
-export interface ApiError {
-  statusCode: number;
-  message: string;
-  error?: string;
-  details?: any;
+// Tipos para filtros
+export interface FilterOption {
+  label: string
+  value: string | number
+  count?: number
+}
+
+export interface Filters {
+  [key: string]: FilterOption[]
+}
+
+// Tipos para ordenamiento
+export interface SortOption {
+  label: string
+  value: string
+  order: 'asc' | 'desc'
+}
+
+export type SortOptions = SortOption[]
+
+// Tipos para sanitización HTML
+export interface DOMPurifyOptions {
+  ALLOWED_TAGS?: string[]
+  ALLOWED_ATTR?: string[]
+  KEEP_CONTENT?: boolean
+  RETURN_DOM?: boolean
+  RETURN_DOM_FRAGMENT?: boolean
+  RETURN_TRUSTED_TYPE?: boolean
+  SAFE_FOR_TEMPLATES?: boolean
+}
+
+export interface DOMPurifyResult {
+  html: string
+  isValid: boolean
+  warnings: string[]
 }

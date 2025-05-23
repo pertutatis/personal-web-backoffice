@@ -1,3 +1,4 @@
+import { startMockServer } from '../tests/mock-server'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { router } from './router'
@@ -5,7 +6,10 @@ import { notificationsPlugin } from './plugins/notifications'
 import { createAuthPlugin } from './stores/authStore'
 import App from './App.vue'
 
-import './assets/main.css'
+// Iniciar servidor mock solo en desarrollo
+if (import.meta.env.DEV) {
+  startMockServer()
+}
 
 // Crear la aplicación
 const app = createApp(App)

@@ -1,97 +1,185 @@
 <template>
-  <div class="notifications-container" data-cy="notifications-container">
+  <div class="notifications">
     <TransitionGroup name="notification">
-      <div 
-        v-for="notification in notifications" 
-        :key="notification.id" 
-        :class="['notification', notificationTypeClass(notification.type)]"
-        :data-cy="`notification-${notification.type}`"
+      <div
+        v-for="notification in notificationsArray"
+        :key="notification.id"
         class="notification"
+        :class="`notification--${notification.type}`"
       >
-        <div class="notification-content">
-          <span class="notification-message" data-cy="notification-message">{{ notification.message }}</span>
+        <div class="notification__content">
+          <component
+            :is="getIcon(notification.type)"
+            class="notification__icon"
+          />
+          <span class="notification__message">{{ notification.message }}</span>
         </div>
-        <button 
-          @click="dismissNotification(notification.id)" 
-          class="notification-dismiss"
-          data-cy="notification-dismiss"
-          aria-label="Cerrar notificación"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-          </svg>
+        <button @click="remove(notification.id)" class="notification__close">
+          <XMarkIcon class="notification__close-icon" />
         </button>
       </div>
     </TransitionGroup>
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue';
-import { useUIStore } from '../../stores/uiStore';
+<script lang="ts">
+import { defineComponent, computed } from 'vue'
+import { useNotifications } from '@/composables/useNotifications'
+import {
+  XMarkIcon,
+  CheckIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon
+} from '@heroicons/vue/24/outline'
+import type { NotificationType, Notification } from '@/composables/useNotifications'
 
-const uiStore = useUIStore();
+export default defineComponent({
+  name: 'TheNotifications',
+  components: {
+    XMarkIcon,
+    CheckIcon,
+    ExclamationTriangleIcon,
+    InformationCircleIcon
+  },
+  setup() {
+    const notificationsApi = useNotifications()
+    const { notifications } = notificationsApi
 
-const notifications = computed(() => uiStore.notifications);
+    const notificationsArray = computed(() => notifications.value)
 
-const notificationTypeClass = (type: 'info' | 'success' | 'warning' | 'error') => {
-  switch (type) {
-    case 'success': return 'notification-success';
-    case 'warning': return 'notification-warning';
-    case 'error': return 'notification-error';
-    default: return 'notification-info';
+    const getIcon = (type: NotificationType) => {
+      switch (type) {
+        case 'success':
+          return CheckIcon
+        case 'error':
+          return ExclamationTriangleIcon
+        case 'warning':
+          return ExclamationTriangleIcon
+        case 'info':
+          return InformationCircleIcon
+        default:
+          return InformationCircleIcon
+      }
+    }
+
+    const remove = (id: number) => {
+      notifications.value = notifications.value.filter((n: Notification) => n.id !== id)
+    }
+
+    const add = (notification: Omit<Notification, 'id'>) => {
+      const id = Date.now()
+      notifications.value.push({ ...notification, id })
+
+      if (notification.timeout) {
+        setTimeout(() => remove(id), notification.timeout)
+      }
+    }
+
+    return {
+      notificationsArray,
+      getIcon,
+      remove,
+      notifications: notifications.value,
+      add
+    }
   }
-};
-
-const dismissNotification = (id: string) => {
-  uiStore.removeNotification(id);
-};
+})
 </script>
 
 <style scoped>
-.notifications-container {
-  @apply fixed right-0 top-0 z-50 m-4 flex max-w-sm flex-col space-y-4;
+.notifications {
+  position: fixed;
+  top: calc(var(--header-height) + 1rem);
+  right: 1rem;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 400px;
 }
 
 .notification {
-  @apply flex items-center justify-between rounded-lg p-4 shadow-lg;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
-.notification-info {
-  @apply bg-blue-50 text-blue-800 dark:bg-blue-900/50 dark:text-blue-100;
+.notification__content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
 }
 
-.notification-success {
-  @apply bg-green-50 text-green-800 dark:bg-green-900/50 dark:text-green-100;
+.notification__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
 }
 
-.notification-warning {
-  @apply bg-yellow-50 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-100;
+.notification__message {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 }
 
-.notification-error {
-  @apply bg-red-50 text-red-800 dark:bg-red-900/50 dark:text-red-100;
+.notification__close {
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  color: currentColor;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.2s;
 }
 
-.notification-content {
-  @apply mr-2 flex-grow;
+.notification__close:hover {
+  opacity: 1;
 }
 
-.notification-dismiss {
-  @apply rounded-full p-1 transition-colors hover:bg-black/10;
+.notification__close-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
-/* Animaciones para las notificaciones */
+.notification--success {
+  background-color: #ecfdf5;
+  color: #047857;
+}
+
+.notification--error {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.notification--warning {
+  background-color: #fffbeb;
+  color: #d97706;
+}
+
+.notification--info {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Transiciones */
 .notification-enter-active,
 .notification-leave-active {
-  @apply transition-all duration-300 ease-in-out;
+  transition: all 0.3s ease;
 }
 
 .notification-enter-from {
-  @apply -translate-x-full opacity-0;
+  opacity: 0;
+  transform: translateX(30px);
 }
 
 .notification-leave-to {
-  @apply translate-y-full opacity-0;
+  opacity: 0;
+  transform: translateX(30px);
 }
 </style>

@@ -1,113 +1,164 @@
 <template>
-  <button 
-    :type="type"
+  <button
     :class="[
-      'rounded-md shadow-sm font-medium focus:outline-none transition duration-150 ease-in-out',
-      sizeClasses,
-      variantClasses,
-      disabled ? 'cursor-not-allowed opacity-60' : '',
-      block ? 'w-full' : '',
-      className
+      'base-button',
+      `base-button--${variant}`,
+      `base-button--${size}`,
+      { 'base-button--loading': loading }
     ]"
     :disabled="disabled || loading"
-    @click="handleClick"
+    v-bind="$attrs"
   >
-    <div class="flex items-center justify-center">
-      <!-- Loading spinner -->
-      <svg 
-        v-if="loading" 
-        class="animate-spin mr-2 h-4 w-4" 
-        xmlns="http://www.w3.org/2000/svg" 
-        fill="none" 
-        viewBox="0 0 24 24"
-      >
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      <!-- Button content -->
+    <!-- Icono de carga -->
+    <span v-if="loading" class="base-button__loader"></span>
+    
+    <!-- Icono a la izquierda -->
+    <span v-if="iconLeft" class="base-button__icon base-button__icon--left">
+      <component :is="iconLeft" />
+    </span>
+    
+    <!-- Contenido -->
+    <span class="base-button__content">
       <slot></slot>
-    </div>
+    </span>
+    
+    <!-- Icono a la derecha -->
+    <span v-if="iconRight" class="base-button__icon base-button__icon--right">
+      <component :is="iconRight" />
+    </span>
   </button>
 </template>
 
-<script lang="ts" setup>
-import { computed } from 'vue';
+<script lang="ts">
+import { defineComponent, PropType } from 'vue'
 
-const props = defineProps({
-  type: {
-    type: String,
-    default: 'button',
-    validator: (value: string) => ['button', 'submit', 'reset'].includes(value),
-  },
-  size: {
-    type: String,
-    default: 'md',
-    validator: (value: string) => ['sm', 'md', 'lg'].includes(value),
-  },
-  variant: {
-    type: String,
-    default: 'primary',
-    validator: (value: string) => ['primary', 'secondary', 'danger', 'success', 'warning', 'info', 'outline', 'ghost'].includes(value),
-  },
-  disabled: {
-    type: Boolean,
-    default: false,
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  block: {
-    type: Boolean,
-    default: false,
-  },
-  className: {
-    type: String,
-    default: '',
-  },
-});
-
-const emit = defineEmits<{
-  (e: 'click', event: MouseEvent): void
-}>();
-
-const handleClick = (event: MouseEvent) => {
-  if (!props.disabled && !props.loading) {
-    emit('click', event);
+export default defineComponent({
+  name: 'BaseButton',
+  props: {
+    variant: {
+      type: String as PropType<'primary' | 'secondary' | 'danger' | 'ghost'>,
+      default: 'primary'
+    },
+    size: {
+      type: String as PropType<'sm' | 'md' | 'lg'>,
+      default: 'md'
+    },
+    loading: {
+      type: Boolean,
+      default: false
+    },
+    disabled: {
+      type: Boolean,
+      default: false
+    },
+    iconLeft: {
+      type: [Object, Function],
+      default: null
+    },
+    iconRight: {
+      type: [Object, Function],
+      default: null
+    }
   }
-};
-
-const sizeClasses = computed(() => {
-  switch (props.size) {
-    case 'sm':
-      return 'px-2.5 py-1.5 text-xs';
-    case 'lg':
-      return 'px-6 py-3 text-base';
-    case 'md':
-    default:
-      return 'px-4 py-2 text-sm';
-  }
-});
-
-const variantClasses = computed(() => {
-  switch (props.variant) {
-    case 'secondary':
-      return 'bg-gray-600 dark:bg-gray-700 text-white hover:bg-gray-700 dark:hover:bg-gray-600 focus:ring-2 focus:ring-offset-2 focus:ring-gray-500';
-    case 'danger':
-      return 'bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
-    case 'success':
-      return 'bg-green-600 text-white hover:bg-green-700 focus:ring-2 focus:ring-offset-2 focus:ring-green-500';
-    case 'warning':
-      return 'bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400';
-    case 'info':
-      return 'bg-blue-400 text-white hover:bg-blue-500 focus:ring-2 focus:ring-offset-2 focus:ring-blue-300';
-    case 'outline':
-      return 'bg-transparent text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
-    case 'ghost':
-      return 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
-    case 'primary':
-    default:
-      return 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
-  }
-});
+})
 </script>
+
+<style scoped>
+.base-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.base-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Variantes */
+.base-button--primary {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.base-button--primary:hover:not(:disabled) {
+  background-color: #0b5ed7;
+}
+
+.base-button--secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.base-button--secondary:hover:not(:disabled) {
+  background-color: #5c636a;
+}
+
+.base-button--danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.base-button--danger:hover:not(:disabled) {
+  background-color: #bb2d3b;
+}
+
+.base-button--ghost {
+  background-color: transparent;
+  border-color: currentColor;
+}
+
+.base-button--ghost:hover:not(:disabled) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Tamaños */
+.base-button--sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.base-button--lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.125rem;
+}
+
+/* Loader */
+.base-button__loader {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Iconos */
+.base-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+}
+
+.base-button__icon--left {
+  margin-right: 0.5rem;
+}
+
+.base-button__icon--right {
+  margin-left: 0.5rem;
+}
+</style>

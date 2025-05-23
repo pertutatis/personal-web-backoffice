@@ -1,133 +1,113 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
-import { ref, computed } from 'vue';
-import { articlesApi } from './articlesApi';
-import { Article, ArticleCreate, ArticleUpdate, PaginatedResponse, QueryParams } from '../../types/models';
+import { toRef, reactive, computed } from 'vue'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
+import { httpClient } from '@/utils/httpClient'
+import { Article, ArticleCreate, ArticleUpdate, PaginatedResponse } from '@/types/models'
+import { API_ENDPOINTS } from '@/types/api'
+
+const ARTICLES_KEY = 'articles'
 
 export function useArticles() {
-  const queryClient = useQueryClient();
-  
-  // Estado para paginación
-  const queryParams = ref<QueryParams>({
-    page: 1,
-    limit: 10,
-  });
+  const queryClient = useQueryClient()
+  const state = reactive({
+    currentPage: 1,
+    itemsPerPage: 10,
+    searchTerm: ''
+  })
 
-  // Obtener listado de artículos paginados
+  // Obtener listado de artículos
   const {
     data: articlesData,
     isLoading: isLoadingArticles,
-    isError: isArticlesError,
-    error: articlesError,
-    refetch: refetchArticles
-  } = useQuery(
-    // Query key que incluye los params de paginación para cache
-    ['articles', queryParams],
-    // Query function
-    () => articlesApi.getArticles(queryParams.value),
-    {
-      keepPreviousData: true, // Mantiene datos previos mientras carga
-      staleTime: 1000 * 60 * 5, // 5 minutos
+    error: articlesError
+  } = useQuery({
+    queryKey: [ARTICLES_KEY, state.currentPage, state.itemsPerPage, state.searchTerm],
+    queryFn: getArticles
+  })
+
+  // Obtener un artículo
+  async function getArticle(id: string): Promise<Article> {
+    const response = await httpClient.get<Article>(`${API_ENDPOINTS.ARTICLES}/${id}`)
+    return response
+  }
+
+  // Obtener artículos con paginación
+  async function getArticles(): Promise<PaginatedResponse<Article>> {
+    const params = {
+      page: state.currentPage,
+      limit: state.itemsPerPage,
+      search: state.searchTerm || undefined
     }
-  );
 
-  // Obtener un artículo por ID
-  const getArticleById = (id: string) => {
-    return useQuery(
-      ['article', id],
-      () => articlesApi.getArticle(id),
-      {
-        staleTime: 1000 * 60 * 5, // 5 minutos
-        enabled: !!id, // Solo ejecuta si hay ID
-      }
-    );
-  };
+    const response = await httpClient.get<PaginatedResponse<Article>>(
+      API_ENDPOINTS.ARTICLES,
+      { params }
+    )
+    return response
+  }
 
-  // Crear un artículo nuevo
-  const createArticleMutation = useMutation(
-    (article: ArticleCreate) => articlesApi.createArticle(article),
-    {
-      onSuccess: () => {
-        // Invalidar consultas para refrescar datos
-        queryClient.invalidateQueries(['articles']);
-      },
+  // Crear artículo
+  const createArticleMutation = useMutation({
+    mutationFn: (article: ArticleCreate) =>
+      httpClient.post<Article>(API_ENDPOINTS.ARTICLES, article),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ARTICLES_KEY] })
     }
-  );
+  })
 
-  // Actualizar un artículo
-  const updateArticleMutation = useMutation(
-    ({ id, data }: { id: string; data: ArticleUpdate }) => 
-      articlesApi.updateArticle(id, data),
-    {
-      onSuccess: (_, variables) => {
-        // Invalidar consultas específicas
-        queryClient.invalidateQueries(['articles']);
-        queryClient.invalidateQueries(['article', variables.id]);
-      },
+  // Actualizar artículo
+  const updateArticleMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: ArticleUpdate }) =>
+      httpClient.patch<Article>(`${API_ENDPOINTS.ARTICLES}/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ARTICLES_KEY] })
     }
-  );
+  })
 
-  // Eliminar un artículo
-  const deleteArticleMutation = useMutation(
-    (id: string) => articlesApi.deleteArticle(id),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['articles']);
-      },
+  // Eliminar artículo
+  const deleteArticleMutation = useMutation({
+    mutationFn: (id: string) =>
+      httpClient.delete<void>(`${API_ENDPOINTS.ARTICLES}/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ARTICLES_KEY] })
     }
-  );
+  })
 
-  // Exposed computed values
-  const articles = computed(() => articlesData.value?.items || []);
+  // Computados
+  const articles = computed(() => articlesData.value?.items || [])
   const pagination = computed(() => ({
     page: articlesData.value?.page || 1,
     limit: articlesData.value?.limit || 10,
     total: articlesData.value?.total || 0,
-    pages: articlesData.value?.pages || 0
-  }));
-
-  // Cambiar página
-  const changePage = (page: number) => {
-    queryParams.value = {
-      ...queryParams.value,
-      page
-    };
-  };
-
-  // Cambiar límite por página
-  const changeLimit = (limit: number) => {
-    queryParams.value = {
-      ...queryParams.value,
-      page: 1, // Reset a primera página
-      limit
-    };
-  };
+    pages: articlesData.value?.totalPages || 1
+  }))
 
   return {
-    // List queries
+    // Estado reactivo
+    currentPage: toRef(state, 'currentPage'),
+    itemsPerPage: toRef(state, 'itemsPerPage'),
+    searchTerm: toRef(state, 'searchTerm'),
+
+    // Datos computados
     articles,
     pagination,
+
+    // Estados de carga
     isLoadingArticles,
-    isArticlesError,
-    articlesError,
-    refetchArticles,
-    queryParams,
-    changePage,
-    changeLimit,
-
-    // Single article query
-    getArticleById,
-
-    // Mutations
-    createArticle: createArticleMutation.mutateAsync,
     isCreatingArticle: createArticleMutation.isLoading,
-    createArticleError: createArticleMutation.error,
-
-    updateArticle: updateArticleMutation.mutateAsync,
     isUpdatingArticle: updateArticleMutation.isLoading,
-    updateArticleError: updateArticleMutation.error,
-
-    deleteArticle: deleteArticleMutation.mutateAsync,
     isDeletingArticle: deleteArticleMutation.isLoading,
-    deleteArticleError: deleteArticleMutation.error
-  };
+
+    // Errores
+    articlesError: articlesError.value,
+    createArticleError: createArticleMutation.error,
+    updateArticleError: updateArticleMutation.error,
+    deleteArticleError: deleteArticleMutation.error,
+
+    // Métodos
+    getArticle,
+    getArticles,
+    createArticle: createArticleMutation.mutateAsync,
+    updateArticle: updateArticleMutation.mutateAsync,
+    deleteArticle: deleteArticleMutation.mutateAsync
+  }
 }

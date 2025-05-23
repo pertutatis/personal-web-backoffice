@@ -1,152 +1,234 @@
-/**
- * Cliente HTTP para interactuar con la API
- */
+import { notifications } from '@/composables/useNotifications'
+import { useAuth } from '@/composables/api/useAuth'
+import type { AuthTokens } from '@/types/auth'
+import {
+  httpConfig,
+  defaultHeaders,
+  errorMessages,
+  tokenConfig,
+  publicPaths,
+  retryConfig,
+  authEndpoints
+} from '@/config/http'
 
-import { ApiError } from '../types/models';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-
-/**
- * Opciones para configurar peticiones HTTP
- */
-export interface RequestOptions {
-  headers?: Record<string, string>;
-  params?: Record<string, string | number | boolean | undefined>;
-  signal?: AbortSignal;
+interface RequestOptions extends RequestInit {
+  params?: Record<string, string | number>
+  timeout?: number
+  retry?: boolean
 }
 
-/**
- * Formatea URL con parámetros query de forma segura
- */
-const formatUrl = (url: string, params?: Record<string, any>): string => {
-  if (!params) return url;
+interface HttpClient {
+  get<T>(url: string, options?: RequestOptions): Promise<T>
+  post<T>(url: string, data?: unknown, options?: RequestOptions): Promise<T>
+  put<T>(url: string, data?: unknown, options?: RequestOptions): Promise<T>
+  patch<T>(url: string, data?: unknown, options?: RequestOptions): Promise<T>
+  delete<T>(url: string, options?: RequestOptions): Promise<T>
+  public<T>(url: string, options?: RequestOptions): Promise<T>
+}
 
-  const queryParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      queryParams.append(key, String(value));
-    }
-  });
-
-  const queryString = queryParams.toString();
-  return queryString ? `${url}?${queryString}` : url;
-};
-
-/**
- * Procesa la respuesta HTTP
- */
-const processResponse = async <T>(response: Response): Promise<T> => {
-  if (!response.ok) {
-    let errorData: ApiError;
-
+class HttpClientImpl implements HttpClient {
+  private async handleErrorResponse(response: Response): Promise<never> {
+    let errorMessage = 'Error desconocido'
     try {
-      errorData = await response.json();
-    } catch (e) {
-      errorData = {
-        statusCode: response.status,
-        message: response.statusText || 'Error desconocido'
-      };
+      const data = await response.json()
+      errorMessage = data.message || errorMessage
+    } catch {
+      errorMessage = response.statusText || errorMessage
     }
 
-    throw errorData;
+    const error = new Error(errorMessage)
+    error.name = 'HttpError'
+    ;(error as any).status = response.status
+    throw error
   }
-  
-  // Para respuestas exitosas, verificar si hay contenido antes de parsearlo
-  const contentType = response.headers.get('content-type');
-  
-  // Si es respuesta vacía (como en 201 Created o 204 No Content)
-  if (response.status === 204 || response.status === 201) {
-    // Si explícitamente estamos esperando void, devolvemos undefined
-    if (typeof undefined as unknown as T === undefined) {
-      return undefined as unknown as T;
+
+  private addQueryParams(url: string, params?: Record<string, string | number>): string {
+    if (!params) return url
+
+    const searchParams = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, String(value))
+      }
+    })
+
+    const queryString = searchParams.toString()
+    return queryString ? `${url}?${queryString}` : url
+  }
+
+  private async refreshTokens(): Promise<boolean> {
+    try {
+      const { getStoredTokens, encryptTokens } = useAuth()
+      const tokens = getStoredTokens()
+      if (!tokens?.refreshToken) return false
+
+      const response = await this.public<AuthTokens>('/backoffice/auth/refresh-token', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${tokens.refreshToken}`
+        }
+      })
+
+      localStorage.setItem('auth_tokens', encryptTokens(response))
+      return true
+    } catch {
+      return false
     }
-    
-    // Si el tipo de contenido no es JSON o no hay contenido, devolvemos un objeto vacío
-    if (!contentType || !contentType.includes('application/json') || response.headers.get('content-length') === '0') {
-      return {} as T;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
+  private async retryRequest<T>(
+    request: () => Promise<T>,
+    retries: number = retryConfig.maxRetries
+  ): Promise<T> {
+    try {
+      return await request()
+    } catch (error) {
+      if (retries === 0 || !error || typeof error !== 'object' || !('status' in error)) {
+        throw error
+      }
+
+      const status = (error as any).status
+      if (!retryConfig.retryStatusCodes.includes(status)) {
+        throw error
+      }
+
+      await this.sleep(retryConfig.retryDelay)
+      return this.retryRequest(request, retries - 1)
     }
   }
-  
 
-  // Si la respuesta es 204 No Content o vacía, devolvemos un objeto vacío
-  if (response.status === 204 || response.headers.get('content-length') === '0') {
-    return {} as T;
+  private async makeRequest<T>(
+    url: string,
+    options: RequestOptions = {},
+    isPublic = false
+  ): Promise<T> {
+    const { params, timeout = httpConfig.timeout, retry = true, ...fetchOptions } = options
+
+    // Agregar prefijo base y parámetros de consulta
+    const fullUrl = this.addQueryParams(`${httpConfig.baseUrl}${url}`, params)
+
+    // Configurar headers
+    fetchOptions.headers = {
+      ...defaultHeaders,
+      ...fetchOptions.headers
+    }
+
+    // Agregar token de autenticación si no es una petición pública
+    if (!isPublic) {
+      const { getStoredTokens } = useAuth()
+      const tokens = getStoredTokens()
+      if (tokens?.token) {
+        fetchOptions.headers = {
+          ...fetchOptions.headers,
+          [tokenConfig.headerName]: `${tokenConfig.tokenPrefix} ${tokens.token}`
+        }
+      }
+    }
+
+    const makeRequestWithTimeout = async (): Promise<T> => {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), timeout)
+      fetchOptions.signal = controller.signal
+
+      try {
+        let response = await fetch(fullUrl, fetchOptions)
+        clearTimeout(timeoutId)
+
+        // Si el token expiró, intentar renovarlo
+        if (response.status === 401 && !isPublic && url !== authEndpoints.refreshToken) {
+        const refreshed = await this.refreshTokens()
+        if (refreshed) {
+          // Actualizar token en headers y reintentar
+          const { getStoredTokens } = useAuth()
+          const tokens = getStoredTokens()
+          if (tokens?.token) {
+            fetchOptions.headers = {
+              ...fetchOptions.headers,
+              'Authorization': `Bearer ${tokens.token}`
+            }
+            response = await fetch(fullUrl, fetchOptions)
+          }
+        } else {
+          // Si no se pudo renovar, limpiar tokens y redirigir a login
+          localStorage.removeItem(tokenConfig.storageKey)
+          window.location.href = '/login'
+          throw new Error('Sesión expirada')
+        }
+      }
+
+      // Manejar respuesta
+      if (!response.ok) {
+        await this.handleErrorResponse(response)
+      }
+
+      // Si es una respuesta vacía (204 No Content)
+      if (response.status === 204) {
+        return {} as T
+      }
+
+      return response.json()
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('La petición ha excedido el tiempo límite')
+        }
+        const errorMessage = error.message || 'Error desconocido en la petición'
+        notifications.error(errorMessage)
+        throw error
+      }
+      throw new Error('Error desconocido en la petición')
+    }
   }
 
-  return await response.json();
-};
+  return retry ? this.retryRequest(makeRequestWithTimeout) : makeRequestWithTimeout()
+}
 
-/**
- * Cliente HTTP con métodos para realizar peticiones a la API
- */
-export const httpClient = {
-  /**
-   * Realiza una petición GET
-   */
-  async get<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    const url = formatUrl(`${API_BASE_URL}${endpoint}`, options.params);
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      signal: options.signal
-    });
+  async get<T>(url: string, options?: RequestOptions): Promise<T> {
+    return this.makeRequest<T>(url, {
+      ...options,
+      method: 'GET'
+    })
+  }
 
-    return processResponse<T>(response);
-  },
-
-  /**
-   * Realiza una petición POST
-   */
-  async post<T>(endpoint: string, data: any, options: RequestOptions = {}): Promise<T> {
-    const url = formatUrl(`${API_BASE_URL}${endpoint}`, options.params);
-    const response = await fetch(url, {
+  async post<T>(url: string, data?: unknown, options?: RequestOptions): Promise<T> {
+    return this.makeRequest<T>(url, {
+      ...options,
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      body: JSON.stringify(data),
-      signal: options.signal
-    });
-
-    return processResponse<T>(response);
-  },
-
-  /**
-   * Realiza una petición PUT
-   */
-  async put<T>(endpoint: string, data: any, options: RequestOptions = {}): Promise<T> {
-    const url = formatUrl(`${API_BASE_URL}${endpoint}`, options.params);
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      body: JSON.stringify(data),
-      signal: options.signal
-    });
-
-    return processResponse<T>(response);
-  },
-
-  /**
-   * Realiza una petición DELETE
-   */
-  async delete<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    const url = formatUrl(`${API_BASE_URL}${endpoint}`, options.params);
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      signal: options.signal
-    });
-
-    return processResponse<T>(response);
+      body: data ? JSON.stringify(data) : undefined
+    })
   }
-};
+
+  async put<T>(url: string, data?: unknown, options?: RequestOptions): Promise<T> {
+    return this.makeRequest<T>(url, {
+      ...options,
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined
+    })
+  }
+
+  async patch<T>(url: string, data?: unknown, options?: RequestOptions): Promise<T> {
+    return this.makeRequest<T>(url, {
+      ...options,
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined
+    })
+  }
+
+  async delete<T>(url: string, options?: RequestOptions): Promise<T> {
+    return this.makeRequest<T>(url, {
+      ...options,
+      method: 'DELETE'
+    })
+  }
+
+  async public<T>(url: string, options?: RequestOptions): Promise<T> {
+    return this.makeRequest<T>(url, options, true)
+  }
+}
+
+// Instancia única del cliente HTTP
+export const httpClient = new HttpClientImpl()

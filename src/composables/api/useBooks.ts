@@ -1,125 +1,126 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
-import { ref, computed } from 'vue';
-import { booksApi } from './booksApi';
-import { Book, BookCreate, BookUpdate, PaginatedResponse, QueryParams } from '../types/models';
+import { toRef, reactive, computed } from 'vue'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
+import { httpClient } from '@/utils/httpClient'
+import { Book, BookCreate, BookUpdate, PaginatedResponse } from '@/types/models'
+import { API_ENDPOINTS } from '@/types/api'
+
+const BOOKS_KEY = 'books'
 
 export function useBooks() {
-  const queryClient = useQueryClient();
-  
-  // Estado para paginación
-  const queryParams = ref<QueryParams>({
-    page: 1,
-    limit: 10,
-  });
+  const queryClient = useQueryClient()
+  const state = reactive({
+    currentPage: 1,
+    itemsPerPage: 10,
+    searchTerm: '',
+    author: '',
+    year: null as number | null
+  })
 
-  // Obtener listado de libros paginados
+  // Obtener listado de libros
   const {
     data: booksData,
     isLoading: isLoadingBooks,
-    isError: isBooksError,
-    error: booksError,
-    refetch: refetchBooks
+    error: booksError
   } = useQuery({
-    // Query key que incluye los params de paginación para cache
-    queryKey: ['books', queryParams.value],
-    // Query function
-    queryFn: () => booksApi.getBooks(queryParams.value),
-    keepPreviousData: true, // Mantiene datos previos mientras carga
-    staleTime: 1000 * 60 * 5, // 5 minutos
-  });
+    queryKey: [BOOKS_KEY, state.currentPage, state.itemsPerPage, state.searchTerm, state.author, state.year],
+    queryFn: getBooks
+  })
 
-  // Obtener un libro por ID
-  const getBookById = (id: string) => {
-    return useQuery({
-      queryKey: ['book', id],
-      queryFn: () => booksApi.getBook(id),
-      staleTime: 1000 * 60 * 5, // 5 minutos
-      enabled: !!id, // Solo ejecuta si hay ID
+  // Obtener un libro
+  async function getBook(id: string): Promise<Book> {
+    const response = await httpClient.get<Book>(`${API_ENDPOINTS.BOOKS}/${id}`)
+    return response
+  }
+
+  // Obtener libros con paginación
+  async function getBooks(): Promise<PaginatedResponse<Book>> {
+    const params = {
+      page: state.currentPage,
+      limit: state.itemsPerPage,
+      search: state.searchTerm || undefined,
+      author: state.author || undefined,
+      year: state.year || undefined
     }
-    );
-  };
 
-  // Crear un libro nuevo
+    const response = await httpClient.get<PaginatedResponse<Book>>(
+      API_ENDPOINTS.BOOKS,
+      { params }
+    )
+    return response
+  }
+
+  // Crear libro
   const createBookMutation = useMutation({
-    mutationFn: (book: BookCreate) => booksApi.createBook(book),
+    mutationFn: (book: BookCreate) =>
+      httpClient.post<Book>(API_ENDPOINTS.BOOKS, book),
     onSuccess: () => {
-      // Invalidar consultas para refrescar datos
-      queryClient.invalidateQueries({ queryKey: ['books'] });
+      queryClient.invalidateQueries({ queryKey: [BOOKS_KEY] })
     }
-  });
+  })
 
-  // Actualizar un libro
+  // Actualizar libro
   const updateBookMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: BookUpdate }) => 
-      booksApi.updateBook(id, data),
-    onSuccess: (_, variables) => {
-      // Invalidar consultas específicas
-      queryClient.invalidateQueries({ queryKey: ['books'] });
-      queryClient.invalidateQueries({ queryKey: ['book', variables.id] });
-      },
-    }
-  );
-
-  // Eliminar un libro
-  const deleteBookMutation = useMutation({
-    mutationFn: (id: string) => booksApi.deleteBook(id),
+    mutationFn: ({ id, data }: { id: string; data: BookUpdate }) =>
+      httpClient.patch<Book>(`${API_ENDPOINTS.BOOKS}/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['books'] });
-    },
-  });
+      queryClient.invalidateQueries({ queryKey: [BOOKS_KEY] })
+    }
+  })
 
-  // Exposed computed values
-  const books = computed(() => booksData.value?.data || []);
+  // Eliminar libro
+  const deleteBookMutation = useMutation({
+    mutationFn: (id: string) =>
+      httpClient.delete<void>(`${API_ENDPOINTS.BOOKS}/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [BOOKS_KEY] })
+    }
+  })
+
+  // Computados
+  const books = computed(() => booksData.value?.items || [])
   const pagination = computed(() => ({
     page: booksData.value?.page || 1,
     limit: booksData.value?.limit || 10,
     total: booksData.value?.total || 0,
-    pages: booksData.value?.pages || 0
-  }));
+    pages: booksData.value?.totalPages || 1
+  }))
 
-  // Cambiar página
-  const changePage = (page: number) => {
-    queryParams.value = {
-      ...queryParams.value,
-      page
-    };
-  };
-
-  // Cambiar límite por página
-  const changeLimit = (limit: number) => {
-    queryParams.value = {
-      ...queryParams.value,
-      page: 1, // Reset a primera página
-      limit
-    };
-  };
+  // Filtros adicionales
+  const filters = computed(() => ({
+    author: state.author,
+    year: state.year
+  }))
 
   return {
-    // List queries
+    // Estado reactivo
+    currentPage: toRef(state, 'currentPage'),
+    itemsPerPage: toRef(state, 'itemsPerPage'),
+    searchTerm: toRef(state, 'searchTerm'),
+    author: toRef(state, 'author'),
+    year: toRef(state, 'year'),
+
+    // Datos computados
     books,
     pagination,
+    filters,
+
+    // Estados de carga
     isLoadingBooks,
-    isBooksError,
-    booksError,
-    refetchBooks,
-    queryParams,
-    changePage,
-    changeLimit,
-
-    // Single book query
-    getBookById,
-
-    // Mutations
-    createBook: createBookMutation.mutateAsync,
     isCreatingBook: createBookMutation.isLoading,
-    createBookError: createBookMutation.error,
-
-    updateBook: updateBookMutation.mutateAsync,
     isUpdatingBook: updateBookMutation.isLoading,
-    updateBookError: updateBookMutation.error,
-
-    deleteBook: deleteBookMutation.mutateAsync,
     isDeletingBook: deleteBookMutation.isLoading,
-    deleteBookError: deleteBookMutation.error
-  };
+
+    // Errores
+    booksError: booksError.value,
+    createBookError: createBookMutation.error,
+    updateBookError: updateBookMutation.error,
+    deleteBookError: deleteBookMutation.error,
+
+    // Métodos
+    getBook,
+    getBooks,
+    createBook: createBookMutation.mutateAsync,
+    updateBook: updateBookMutation.mutateAsync,
+    deleteBook: deleteBookMutation.mutateAsync
+  }
 }
