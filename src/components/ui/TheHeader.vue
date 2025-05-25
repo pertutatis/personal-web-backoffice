@@ -1,138 +1,61 @@
 <template>
-  <header class="header">
-    <div class="header__left">
-      <button class="header__menu-button" @click="toggleSidebar">
-        <span class="icon">≡</span>
+  <header class="header" data-cy="header">
+    <div class="flex items-center">
+      <button 
+        @click="toggleSidebar"
+        data-cy="menu-toggle"
+        class="mr-4 rounded p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+        aria-label="Toggle sidebar"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
       </button>
-      <h1 class="header__title">{{ appTitle }}</h1>
+      <h1 class="text-xl font-bold" data-cy="page-title">{{ pageTitle }}</h1>
     </div>
-    
-    <div class="header__right">
-      <div v-if="user" class="header__user">
-        <span class="header__username">{{ user.name }}</span>
-        <button class="header__logout" @click="logout">
-          Cerrar sesión
-        </button>
-      </div>
+    <div class="flex items-center space-x-4">
+      <button 
+        @click="toggleTheme" 
+        data-cy="theme-toggle"
+        class="rounded p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800" 
+        aria-label="Toggle theme"
+      >
+        <svg v-if="isDarkMode" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+        </svg>
+        <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+        </svg>
+      </button>
     </div>
   </header>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed } from 'vue'
-import { useAuthStore } from '@/stores/authStore'
-import { useRouter } from 'vue-router'
-import { useNotifications } from '@/composables/useNotifications'
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { useUIStore } from '../../stores/uiStore';
 
-export default defineComponent({
-  name: 'TheHeader',
-  setup() {
-    const authStore = useAuthStore()
-    const router = useRouter()
-    const { notifications } = useNotifications()
+const route = useRoute();
+const uiStore = useUIStore();
 
-    const appTitle = computed(() => import.meta.env.VITE_APP_TITLE || 'Blog Admin')
-    const user = computed(() => authStore.user)
+const pageTitle = computed(() => {
+  return route.meta.title as string || 'Dashboard';
+});
 
-    const toggleSidebar = () => {
-      // Emitir evento para el store global
-      document.body.classList.toggle('sidebar-open')
-    }
+const isDarkMode = computed(() => uiStore.isDarkMode);
 
-    const logout = async () => {
-      try {
-        await authStore.logout()
-        notifications.success('Sesión cerrada correctamente')
-        router.push('/login')
-      } catch (error) {
-        notifications.error('Error al cerrar sesión')
-      }
-    }
+function toggleSidebar() {
+  uiStore.toggleSidebar();
+}
 
-    return {
-      appTitle,
-      user,
-      toggleSidebar,
-      logout
-    }
-  }
-})
+function toggleTheme() {
+  uiStore.toggleTheme();
+}
 </script>
 
 <style scoped>
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background-color: white;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  height: var(--header-height);
-}
-
-.header__left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.header__menu-button {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #4b5563;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.375rem;
-  transition: background-color 0.2s;
-}
-
-.header__menu-button:hover {
-  background-color: #f3f4f6;
-}
-
-.header__title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
-}
-
-.header__right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.header__user {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.header__username {
-  font-weight: 500;
-  color: #4b5563;
-}
-
-.header__logout {
-  background: none;
-  border: none;
-  color: #6b7280;
-  font-size: 0.875rem;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
-}
-
-.header__logout:hover {
-  background-color: #f3f4f6;
-  color: #dc2626;
+  @apply flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800;
 }
 </style>

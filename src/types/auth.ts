@@ -2,12 +2,14 @@
 export interface AuthTokens {
   token: string
   refreshToken: string
+  email: string
 }
 
 // Respuesta de la API de autenticación
 export interface AuthResponse {
   token: string
   refreshToken: string
+  email: string
 }
 
 // Error de autenticación

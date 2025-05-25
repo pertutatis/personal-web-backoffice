@@ -4,7 +4,7 @@ interface ApiConfig {
 }
 
 export const httpConfig: ApiConfig = {
-  baseUrl: '/api',
+  baseUrl: 'http://localhost:3000/api',
   timeout: 5000
 }
 

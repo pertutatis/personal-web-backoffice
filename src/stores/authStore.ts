@@ -8,6 +8,7 @@ interface AuthState {
   isAuthenticated: boolean
   loading: boolean
   error: string | null
+  userEmail: string | null
 }
 
 // Store de autenticación
@@ -15,7 +16,8 @@ export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     isAuthenticated: false,
     loading: false,
-    error: null
+    error: null,
+    userEmail: null
   }),
 
   actions: {
@@ -26,7 +28,10 @@ export const useAuthStore = defineStore('auth', {
       try {
         const { login } = useAuth()
         await login(email, password)
+        const { getStoredTokens } = useAuth()
+        const tokens = getStoredTokens()
         this.isAuthenticated = true
+        this.userEmail = tokens?.email || null
       } catch (e: any) {
         this.error = e.message
         throw e
@@ -42,7 +47,10 @@ export const useAuthStore = defineStore('auth', {
       try {
         const { register } = useAuth()
         await register(email, password)
+        const { getStoredTokens } = useAuth()
+        const tokens = getStoredTokens()
         this.isAuthenticated = true
+        this.userEmail = tokens?.email || null
       } catch (e: any) {
         this.error = e.message
         throw e
@@ -56,6 +64,13 @@ export const useAuthStore = defineStore('auth', {
       logout()
       this.isAuthenticated = false
       this.error = null
+      this.userEmail = null
+    }
+  },
+
+  getters: {
+    currentUserEmail: (state): string => {
+      return state.userEmail || 'Usuario'
     }
   }
 })
@@ -69,6 +84,7 @@ export function createAuthPlugin() {
       const tokens = getStoredTokens()
       if (tokens?.token) {
         store.$state.isAuthenticated = true
+        store.$state.userEmail = tokens.email
       }
 
       // Suscribirse a cambios en el estado

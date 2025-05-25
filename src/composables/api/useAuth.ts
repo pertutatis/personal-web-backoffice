@@ -57,7 +57,7 @@ export const useAuth = (): UseAuth => {
         password
       })
 
-      storeTokens(response.data)
+      storeTokens({ ...response.data, email }) // Incluir el email en los tokens
     } catch (e: any) {
       error.value = e.message || 'Ha ocurrido un error'
       throw e
@@ -76,7 +76,7 @@ export const useAuth = (): UseAuth => {
         password
       })
 
-      storeTokens(response.data)
+      storeTokens({ ...response.data, email }) // Incluir el email en los tokens
     } catch (e: any) {
       error.value = e.message || 'Ha ocurrido un error'
       throw e

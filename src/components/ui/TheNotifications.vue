@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, onMounted } from 'vue'
 import { useNotifications } from '@/composables/useNotifications'
 import {
   XMarkIcon,
@@ -43,7 +43,7 @@ export default defineComponent({
   },
   setup() {
     const notificationsApi = useNotifications()
-    const { notifications } = notificationsApi
+    const { notifications, setNotificationComponent } = notificationsApi
 
     const notificationsArray = computed(() => notifications.value)
 
@@ -74,6 +74,15 @@ export default defineComponent({
         setTimeout(() => remove(id), notification.timeout)
       }
     }
+
+    onMounted(() => {
+      // Registrar el componente para que pueda ser usado por el sistema de notificaciones
+      setNotificationComponent({
+        notifications: notifications.value,
+        add,
+        remove
+      })
+    })
 
     return {
       notificationsArray,

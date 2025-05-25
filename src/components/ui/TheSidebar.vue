@@ -1,15 +1,50 @@
 <template>
-  <aside class="sidebar" :class="{ 'sidebar--open': isOpen }">
-    <nav class="sidebar__nav">
-      <ul class="sidebar__menu">
-        <li v-for="item in menuItems" :key="item.path">
-          <router-link
-            :to="item.path"
-            class="sidebar__link"
-            :class="{ 'sidebar__link--active': isActive(item.path) }"
-          >
-            <component :is="item.icon" class="sidebar__icon" />
-            <span class="sidebar__text">{{ item.text }}</span>
+  <aside :class="['sidebar', { 'sidebar-collapsed': !isOpen }]" data-cy="sidebar">
+    <div class="sidebar-header">
+      <router-link to="/" class="logo" data-cy="logo-link">
+        <span class="text-xl font-bold">Blog Admin</span>
+      </router-link>
+    </div>
+    
+    <div class="user-info p-4 border-b border-gray-200 dark:border-gray-700">
+      <p class="text-sm font-medium text-gray-700 dark:text-gray-300" data-cy="user-greeting">
+        Bienvenido, {{ userEmail }}
+      </p>
+      <button 
+        class="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 mt-1"
+        data-cy="logout-button"
+        @click="handleLogout"
+      >
+        Cerrar sesión
+      </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <router-link to="/" class="nav-link" :class="{ active: isActiveRoute('/') }" data-cy="nav-dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-5 w-5">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+            </svg>
+            <span>Dashboard</span>
+          </router-link>
+        </li>
+        
+        <li>
+          <router-link to="/articulos" class="nav-link" :class="{ active: isActiveRoute('/articulos') }" data-cy="nav-articles">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-5 w-5">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+            </svg>
+            <span>Artículos</span>
+          </router-link>
+        </li>
+        
+        <li>
+          <router-link to="/libros" class="nav-link" :class="{ active: isActiveRoute('/libros') }" data-cy="nav-books">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-5 w-5">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+            <span>Libros</span>
           </router-link>
         </li>
       </ul>
@@ -17,147 +52,69 @@
   </aside>
 </template>
 
-<script lang="ts">
-import { defineComponent, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import {
-  HomeIcon,
-  DocumentTextIcon,
-  BookOpenIcon,
-  ChartBarIcon,
-  UserGroupIcon,
-  CogIcon
-} from '@heroicons/vue/24/outline'
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useUIStore } from '../../stores/uiStore';
+import { useAuthStore } from '@/stores/authStore';
+import { storeToRefs } from 'pinia';
 
-export default defineComponent({
-  name: 'TheSidebar',
-  components: {
-    HomeIcon,
-    DocumentTextIcon,
-    BookOpenIcon,
-    ChartBarIcon,
-    UserGroupIcon,
-    CogIcon
-  },
-  props: {
-    isOpen: {
-      type: Boolean,
-      default: false
-    }
-  },
-  setup() {
-    const route = useRoute()
+const route = useRoute();
+const router = useRouter();
+const uiStore = useUIStore();
+const authStore = useAuthStore();
 
-    const menuItems = computed(() => [
-      {
-        text: 'Dashboard',
-        path: '/',
-        icon: HomeIcon
-      },
-      {
-        text: 'Artículos',
-        path: '/articulos',
-        icon: DocumentTextIcon
-      },
-      {
-        text: 'Libros',
-        path: '/libros',
-        icon: BookOpenIcon
-      },
-      {
-        text: 'Estadísticas',
-        path: '/estadisticas',
-        icon: ChartBarIcon
-      },
-      {
-        text: 'Usuarios',
-        path: '/usuarios',
-        icon: UserGroupIcon
-      },
-      {
-        text: 'Configuración',
-        path: '/configuracion',
-        icon: CogIcon
-      }
-    ])
+const isOpen = computed(() => uiStore.sidebarOpen);
+const { userEmail } = storeToRefs(authStore);
 
-    const isActive = (path: string) => {
-      if (path === '/') {
-        return route.path === path
-      }
-      return route.path.startsWith(path)
-    }
+function handleLogout() {
+  authStore.logout();
+  router.push('/login');
+}
 
-    return {
-      menuItems,
-      isActive
-    }
-  }
-})
+function isActiveRoute(path: string): boolean {
+  return route.path === path || route.path.startsWith(`${path}/`);
+}
 </script>
 
 <style scoped>
 .sidebar {
-  position: fixed;
-  top: var(--header-height);
-  left: 0;
-  bottom: 0;
-  width: var(--sidebar-width);
-  background-color: white;
-  border-right: 1px solid #e5e7eb;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 20;
+  @apply h-full w-64 bg-gray-800 text-white transition-all duration-300 ease-in-out dark:bg-gray-800;
 }
 
-.sidebar--open {
-  transform: translateX(0);
+.sidebar-collapsed {
+  @apply w-20;
 }
 
-.sidebar__nav {
-  height: 100%;
-  padding: 1rem 0;
+.sidebar-header {
+  @apply flex h-16 items-center justify-center border-b border-gray-700;
 }
 
-.sidebar__menu {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.logo {
+  @apply text-white no-underline;
 }
 
-.sidebar__link {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  color: #4b5563;
-  text-decoration: none;
-  transition: all 0.2s;
+.sidebar-nav {
+  @apply mt-6;
 }
 
-.sidebar__link:hover {
-  background-color: #f3f4f6;
-  color: #111827;
+.nav-link {
+  @apply flex items-center px-6 py-3 text-gray-300 transition-colors hover:bg-gray-700 hover:text-white;
 }
 
-.sidebar__link--active {
-  background-color: #f3f4f6;
-  color: #111827;
-  font-weight: 500;
+.nav-link.active {
+  @apply bg-blue-700 text-white;
 }
 
-.sidebar__icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin-right: 0.75rem;
+.nav-link svg {
+  @apply mr-3;
 }
 
-.sidebar__text {
-  font-size: 0.875rem;
+.sidebar-collapsed .nav-link span {
+  @apply hidden;
 }
 
-@media (min-width: 768px) {
-  .sidebar {
-    transform: translateX(0);
-  }
+.sidebar-collapsed .logo span {
+  @apply hidden;
 }
 </style>

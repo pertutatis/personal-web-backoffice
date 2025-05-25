@@ -1,4 +1,5 @@
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
 /**
  * Verifica si hay un token de autenticación válido
@@ -9,7 +10,15 @@ export const authGuard = (
   from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
+  const authStore = useAuthStore()
   const authTokens = localStorage.getItem('auth_tokens')
+
+  // Actualizar estado de autenticación en el store
+  if (authTokens) {
+    authStore.$patch({ isAuthenticated: true })
+  } else {
+    authStore.$patch({ isAuthenticated: false })
+  }
 
   if (!authTokens && to.name !== 'login' && to.name !== 'register') {
     next({

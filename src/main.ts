@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import { VueQueryPlugin } from '@tanstack/vue-query'
 import { router } from './router'
 import { notificationsPlugin } from './plugins/notifications'
 import { createAuthPlugin } from './stores/authStore'
@@ -14,6 +15,9 @@ const app = createApp(App)
 const pinia = createPinia()
 pinia.use(createAuthPlugin())
 app.use(pinia)
+
+// Configurar Vue Query
+app.use(VueQueryPlugin)
 
 // Router
 app.use(router)

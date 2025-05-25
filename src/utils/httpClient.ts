@@ -1,4 +1,4 @@
-import { notifications } from '@/composables/useNotifications'
+import { useNotifications } from '@/composables/useNotifications'
 import { useAuth } from '@/composables/api/useAuth'
 import type { AuthTokens } from '@/types/auth'
 import {
@@ -140,52 +140,53 @@ class HttpClientImpl implements HttpClient {
 
         // Si el token expiró, intentar renovarlo
         if (response.status === 401 && !isPublic && url !== authEndpoints.refreshToken) {
-        const refreshed = await this.refreshTokens()
-        if (refreshed) {
-          // Actualizar token en headers y reintentar
-          const { getStoredTokens } = useAuth()
-          const tokens = getStoredTokens()
-          if (tokens?.token) {
-            fetchOptions.headers = {
-              ...fetchOptions.headers,
-              'Authorization': `Bearer ${tokens.token}`
+          const refreshed = await this.refreshTokens()
+          if (refreshed) {
+            // Actualizar token en headers y reintentar
+            const { getStoredTokens } = useAuth()
+            const tokens = getStoredTokens()
+            if (tokens?.token) {
+              fetchOptions.headers = {
+                ...fetchOptions.headers,
+                'Authorization': `Bearer ${tokens.token}`
+              }
+              response = await fetch(fullUrl, fetchOptions)
             }
-            response = await fetch(fullUrl, fetchOptions)
+          } else {
+            // Si no se pudo renovar, limpiar tokens y redirigir a login
+            localStorage.removeItem(tokenConfig.storageKey)
+            window.location.href = '/login'
+            throw new Error('Sesión expirada')
           }
-        } else {
-          // Si no se pudo renovar, limpiar tokens y redirigir a login
-          localStorage.removeItem(tokenConfig.storageKey)
-          window.location.href = '/login'
-          throw new Error('Sesión expirada')
         }
-      }
 
-      // Manejar respuesta
-      if (!response.ok) {
-        await this.handleErrorResponse(response)
-      }
-
-      // Si es una respuesta vacía (204 No Content)
-      if (response.status === 204) {
-        return {} as T
-      }
-
-      return response.json()
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          throw new Error('La petición ha excedido el tiempo límite')
+        // Manejar respuesta
+        if (!response.ok) {
+          await this.handleErrorResponse(response)
         }
-        const errorMessage = error.message || 'Error desconocido en la petición'
-        notifications.error(errorMessage)
-        throw error
+
+        // Si es una respuesta vacía (204 No Content)
+        if (response.status === 204) {
+          return {} as T
+        }
+
+        return response.json()
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            throw new Error('La petición ha excedido el tiempo límite')
+          }
+          const errorMessage = error.message || 'Error desconocido en la petición'
+          const { error: showError } = useNotifications()
+          showError(errorMessage)
+          throw error
+        }
+        throw new Error('Error desconocido en la petición')
       }
-      throw new Error('Error desconocido en la petición')
     }
-  }
 
-  return retry ? this.retryRequest(makeRequestWithTimeout) : makeRequestWithTimeout()
-}
+    return retry ? this.retryRequest(makeRequestWithTimeout) : makeRequestWithTimeout()
+  }
 
   async get<T>(url: string, options?: RequestOptions): Promise<T> {
     return this.makeRequest<T>(url, {
