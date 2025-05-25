@@ -46,7 +46,7 @@
             
             <div>
               <dt class="text-sm font-medium text-gray-500">Descripción</dt>
-              <dd class="mt-1" v-html="renderMarkdown(book.description)"></dd>
+              <dd class="mt-1" v-html="sanitizeMarkdown(book.description)"></dd>
             </div>
             
             <div v-if="book.purchaseLink">
@@ -89,7 +89,7 @@
               Eliminar
             </button>
             <router-link
-              :to="`/libros`"
+              to="/libros"
               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -102,6 +102,7 @@
       </div>
     </div>
 
+    <!-- Modal de confirmación -->
     <Teleport to="body">
       <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
         <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
@@ -138,37 +139,22 @@ import { ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
-import BaseButton from "@/components/ui/BaseButton.vue";
-import BaseModal from "@/components/ui/BaseModal.vue";
 import { useBooks } from "@/composables/api/useBooks";
 import { useUIStore } from "@/stores/uiStore";
 
 const route = useRoute();
 const router = useRouter();
 const uiStore = useUIStore();
-const queryClient = useQueryClient(); // Inicialización de queryClient en nivel superior
 const id = computed(() => route.params.id as string);
 
-// Usar el composable useBooks
-const { getBookById } = useBooks();
+// Estado local
 const showDeleteModal = ref(false);
 const isDeleting = ref(false);
 
-// Obtener datos para el libro actual usando getBookById
+// Usar el composable useBooks
+const { getBookById, deleteBookMutation } = useBooks();
 const { data: book, isLoading, error } = getBookById(id.value);
-
-// Importar booksApi directamente
-import { booksApi } from "@/composables/api/booksApi";
-
-// Crear mutación para eliminar directamente desde la API
-const { mutate: deleteBookById } = useMutation({
-  mutationFn: (id: string) => booksApi.deleteBook(id),
-  onSuccess: () => {
-    // Invalidar consultas relevantes tras una mutación usando la instancia ya creada
-    queryClient.invalidateQueries({ queryKey: ["books"] });
-  },
-});
+const { mutate: deleteBookById } = deleteBookMutation();
 
 // Formatear fecha
 const formatDate = (date: string) => {
@@ -183,24 +169,22 @@ const formatDate = (date: string) => {
 const formatIsbn = (isbn: string): string => {
   if (!isbn) return '';
   
-  // ISBN-13 (después del 2007): 978-3-16-148410-0
   if (isbn.length === 13) {
     return `${isbn.slice(0, 3)}-${isbn.slice(3, 4)}-${isbn.slice(4, 6)}-${isbn.slice(6, 12)}-${isbn.slice(12)}`;
   }
   
-  // ISBN-10 (antes del 2007): 3-16-148410-X
   if (isbn.length === 10) {
     return `${isbn.slice(0, 1)}-${isbn.slice(1, 3)}-${isbn.slice(3, 9)}-${isbn.slice(9)}`;
   }
   
-  return isbn; // Devolver sin formato si no encaja en los formatos conocidos
+  return isbn;
 };
 
-// Renderizar markdown de forma segura
-const renderMarkdown = (text: string) => {
+// Renderizar y sanitizar markdown
+const sanitizeMarkdown = (text: string): string => {
   if (!text) return "";
-  const rawHtml = marked(text);
-  return DOMPurify.sanitize(rawHtml);
+  const rawHtml = marked.parse(text);
+  return DOMPurify.sanitize(rawHtml as string);
 };
 
 // Modal de confirmación para eliminar
@@ -212,31 +196,24 @@ const openDeleteDialog = () => {
 const deleteBook = () => {
   isDeleting.value = true;
   
-  // Usar la mutación creada con useMutation
   deleteBookById(id.value, {
     onSuccess: () => {
-      // Mostrar notificación de éxito
       uiStore.addNotification({
         type: 'success',
-        message: `El libro ha sido eliminado correctamente.`
+        message: 'El libro ha sido eliminado correctamente.'
       });
       
-      // Redirección explícita a la ruta de libros
       router.push('/libros');
-      
-      // Cerrar modal y resetear estado
       showDeleteModal.value = false;
       isDeleting.value = false;
     },
-    onError: (error) => {
-      console.error("Error al eliminar libro:", error);
-      // Mostrar notificación de error
+    onError: (error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       uiStore.addNotification({
         type: 'error',
-        message: `Error al eliminar el libro: ${error.message || 'Error desconocido'}`
+        message: `Error al eliminar el libro: ${errorMessage}`
       });
       
-      // Resetear estado
       isDeleting.value = false;
       showDeleteModal.value = false;
     }
