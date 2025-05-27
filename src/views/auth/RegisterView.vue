@@ -100,7 +100,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useAuth } from "@/composables/api/useAuth";
+import { useAuthStore } from "@/stores/authStore";
 
 // State
 const email = ref("");
@@ -113,7 +113,7 @@ const isLoading = ref(false);
 
 // Composables
 const router = useRouter();
-const { register } = useAuth();
+const authStore = useAuthStore();
 
 // Validations
 watch(email, () => {
@@ -171,7 +171,7 @@ const handleSubmit = async () => {
 
     // Submit form
     isLoading.value = true;
-    await register(email.value, password.value);
+    await authStore.register(email.value, password.value);
 
     // Redirect to dashboard
     router.push("/dashboard");
