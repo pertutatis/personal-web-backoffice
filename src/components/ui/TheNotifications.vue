@@ -2,7 +2,7 @@
   <div class="notifications">
     <TransitionGroup name="notification">
       <div
-        v-for="notification in notificationsArray"
+        v-for="notification in notifications"
         :key="notification.id"
         class="notification"
         :class="`notification--${notification.type}`"
@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, onMounted } from 'vue'
+import { defineComponent, ref, computed, onMounted } from 'vue'
 import { useNotifications } from '@/composables/useNotifications'
 import {
   XMarkIcon,
@@ -43,9 +43,10 @@ export default defineComponent({
   },
   setup() {
     const notificationsApi = useNotifications()
-    const { notifications, setNotificationComponent } = notificationsApi
+    const { setNotificationComponent } = notificationsApi
 
-    const notificationsArray = computed(() => notifications.value)
+    // Usar un array local para las notificaciones
+    const notifications = ref<Notification[]>([])
 
     const getIcon = (type: NotificationType) => {
       switch (type) {
@@ -63,33 +64,37 @@ export default defineComponent({
     }
 
     const remove = (id: number) => {
-      notifications.value = notifications.value.filter((n: Notification) => n.id !== id)
+      notifications.value = notifications.value.filter(n => n.id !== id)
     }
 
     const add = (notification: Omit<Notification, 'id'>) => {
-      const id = Date.now()
-      notifications.value.push({ ...notification, id })
+      try {
+        const id = Date.now()
+        const newNotification = { ...notification, id }
+        
+        // Usar spread para crear una nueva referencia del array
+        notifications.value = [...notifications.value, newNotification]
 
-      if (notification.timeout) {
-        setTimeout(() => remove(id), notification.timeout)
+        if (notification.timeout) {
+          setTimeout(() => remove(id), notification.timeout)
+        }
+      } catch (error) {
+        console.error('Error al añadir notificación:', error)
       }
     }
 
     onMounted(() => {
       // Registrar el componente para que pueda ser usado por el sistema de notificaciones
       setNotificationComponent({
-        notifications: notifications.value,
         add,
         remove
       })
     })
 
     return {
-      notificationsArray,
+      notifications: computed(() => notifications.value),
       getIcon,
-      remove,
-      notifications: notifications.value,
-      add
+      remove
     }
   }
 })
@@ -98,95 +103,76 @@ export default defineComponent({
 <style scoped>
 .notifications {
   position: fixed;
-  top: calc(var(--header-height) + 1rem);
-  right: 1rem;
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-  max-width: 400px;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  width: 300px;
 }
 
 .notification {
-  padding: 1rem;
-  border-radius: 0.5rem;
-  background-color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  transition: all 0.3s ease;
 }
 
 .notification__content {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  flex: 1;
 }
 
 .notification__icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
 }
 
 .notification__message {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  flex: 1;
+  font-size: 14px;
 }
 
 .notification__close {
-  padding: 0.25rem;
+  cursor: pointer;
   background: none;
   border: none;
-  color: currentColor;
-  opacity: 0.5;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.notification__close:hover {
-  opacity: 1;
+  padding: 0;
+  margin-left: 10px;
 }
 
 .notification__close-icon {
-  width: 1rem;
-  height: 1rem;
+  width: 16px;
+  height: 16px;
+  color: #666;
 }
 
 .notification--success {
-  background-color: #ecfdf5;
-  color: #047857;
+  border-left: 4px solid #10b981;
 }
 
 .notification--error {
-  background-color: #fef2f2;
-  color: #dc2626;
+  border-left: 4px solid #ef4444;
 }
 
 .notification--warning {
-  background-color: #fffbeb;
-  color: #d97706;
+  border-left: 4px solid #f59e0b;
 }
 
 .notification--info {
-  background-color: #f3f4f6;
-  color: #4b5563;
+  border-left: 4px solid #3b82f6;
 }
 
-/* Transiciones */
 .notification-enter-active,
 .notification-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.3s;
 }
 
-.notification-enter-from {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
+.notification-enter-from,
 .notification-leave-to {
   opacity: 0;
   transform: translateX(30px);

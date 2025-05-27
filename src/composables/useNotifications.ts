@@ -11,16 +11,19 @@ export interface Notification {
 }
 
 export interface NotificationComponent extends Component {
-  notifications: Notification[]
   add: (notification: Omit<Notification, 'id'>) => void
   remove: (id: number) => void
 }
 
+// Crear un array reactivo privado y una versión de solo lectura para exponer
+const notificationsData = ref<Notification[]>([])
+const notifications = readonly(notificationsData)
+
+// Variable global para el componente de notificaciones
 let notificationComponent: NotificationComponent | null = null
-const notifications: Ref<Notification[]> = ref([])
 
 export interface NotificationsApi {
-  notifications: Ref<Notification[]>
+  notifications: Readonly<Ref<Notification[]>>
   setNotificationComponent: (component: NotificationComponent) => void
   notify: (message: string, type: NotificationType, timeout?: number) => void
   success: (message: string, timeout?: number) => void
@@ -39,46 +42,54 @@ export function useNotifications(): NotificationsApi {
     type: NotificationType = 'info',
     timeout = 3000
   ) => {
+    // Prevenir notificaciones vacías
+    if (!message) return;
+
     const notification: Omit<Notification, 'id'> = {
       message,
       type,
       timeout
     }
 
-    if (notificationComponent) {
-      notificationComponent.add(notification)
-    } else {
-      const id = Date.now()
-      notifications.value.push({ ...notification, id })
-      if (timeout) {
-        setTimeout(() => {
-          const index = notifications.value.findIndex((n: Notification) => n.id === id)
-          if (index !== -1) {
-            notifications.value.splice(index, 1)
-          }
-        }, timeout)
+    try {
+      if (notificationComponent) {
+        notificationComponent.add(notification)
+      } else {
+        // Si no hay componente, almacenar en el array para mostrarlo cuando esté disponible
+        const id = Date.now()
+        // Usar la versión no readonly interna para la modificación
+        notificationsData.value = [...notificationsData.value, { ...notification, id }]
+        
+        // Auto-borrar después del timeout si se especifica
+        if (timeout) {
+          setTimeout(() => {
+            notificationsData.value = notificationsData.value.filter(n => n.id !== id)
+          }, timeout)
+        }
       }
+    } catch (error) {
+      console.error('Error al mostrar notificación:', error)
     }
   }
 
-  const success = (message: string, timeout = 3000) => {
+  const success = (message: string, timeout?: number) => {
     notify(message, 'success', timeout)
   }
 
-  const error = (message: string, timeout = 5000) => {
+  const error = (message: string, timeout?: number) => {
     notify(message, 'error', timeout)
   }
 
-  const info = (message: string, timeout = 3000) => {
+  const info = (message: string, timeout?: number) => {
     notify(message, 'info', timeout)
   }
 
-  const warning = (message: string, timeout = 4000) => {
+  const warning = (message: string, timeout?: number) => {
     notify(message, 'warning', timeout)
   }
 
   return {
-    notifications: readonly(notifications) as Ref<Notification[]>,
+    notifications,
     setNotificationComponent,
     notify,
     success,
@@ -87,5 +98,3 @@ export function useNotifications(): NotificationsApi {
     warning
   }
 }
-
-export { notifications }

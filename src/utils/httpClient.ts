@@ -1,6 +1,5 @@
 import { useNotifications } from '@/composables/useNotifications'
 import { useAuth } from '@/composables/api/useAuth'
-import type { AuthTokens } from '@/types/auth'
 import {
   httpConfig,
   defaultHeaders,
@@ -57,21 +56,60 @@ class HttpClientImpl implements HttpClient {
   }
 
   private async refreshTokens(): Promise<boolean> {
+    // Verificar si estamos configurados para usar renovación de tokens
+    if (!tokenConfig.useTokenRefresh) {
+      return false
+    }
+
     try {
       const { getStoredTokens, encryptTokens } = useAuth()
       const tokens = getStoredTokens()
-      if (!tokens?.refreshToken) return false
+      if (!tokens?.refreshToken) {
+        return false
+      }
 
-      const response = await this.public<AuthTokens>('/backoffice/auth/refresh-token', {
+      const response = await this.public<any>(authEndpoints.refreshToken, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${tokens.refreshToken}`
         }
       })
+      
+      // Verificar si la respuesta contiene token directamente o dentro de data
+      const responseData = response.data ? response.data : response;
+      
+      // Analizar la estructura para identificar los tokens
+      const tokenValue = responseData.token || responseData.access_token;
+      
+      // Si no hay token, no podemos continuar
+      if (!tokenValue) {
+        return false
+      }
+      
+      // Si el backend no proporciona refreshToken, usamos el mismo token para ambos casos
+      const refreshTokenValue = responseData.refreshToken || responseData.refresh_token || tokenValue;
 
-      localStorage.setItem('auth_tokens', encryptTokens(response))
+      // Construir el nuevo objeto de tokens
+      const newTokens = {
+        token: tokenValue,
+        refreshToken: refreshTokenValue,
+        email: tokens.email || responseData.email || ''
+      }
+      
+      const encrypted = encryptTokens(newTokens)
+      localStorage.setItem(tokenConfig.storageKey, encrypted)
       return true
-    } catch {
+    } catch (error: any) {
+   
+      // Detectar específicamente si el endpoint no existe (404)
+      if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
+        // Desactivar la renovación de tokens para futuras solicitudes
+        // @ts-ignore - Modificamos una propiedad readonly solo en tiempo de ejecución
+        tokenConfig.useTokenRefresh = false
+        
+        const { warning } = useNotifications()
+        warning('Su sesión ha expirado. Por favor, vuelva a iniciar sesión.')
+      }
       return false
     }
   }
@@ -117,14 +155,18 @@ class HttpClientImpl implements HttpClient {
       ...fetchOptions.headers
     }
 
-    // Agregar token de autenticación si no es una petición pública
-    if (!isPublic) {
+    // Verificar si la URL es para autenticación (login, register)
+    const isAuthOperation = url === authEndpoints.login || url === authEndpoints.register || url === authEndpoints.refreshToken
+    
+    // Agregar token de autenticación si no es una petición pública y no es login/register
+    if (!isPublic && !isAuthOperation) {
       const { getStoredTokens } = useAuth()
       const tokens = getStoredTokens()
+      
       if (tokens?.token) {
         fetchOptions.headers = {
           ...fetchOptions.headers,
-          [tokenConfig.headerName]: `${tokenConfig.tokenPrefix} ${tokens.token}`
+          'Authorization': `Bearer ${tokens.token}`
         }
       }
     }
@@ -135,27 +177,73 @@ class HttpClientImpl implements HttpClient {
       fetchOptions.signal = controller.signal
 
       try {
+        // Realizar la petición
         let response = await fetch(fullUrl, fetchOptions)
         clearTimeout(timeoutId)
 
-        // Si el token expiró, intentar renovarlo
-        if (response.status === 401 && !isPublic && url !== authEndpoints.refreshToken) {
-          const refreshed = await this.refreshTokens()
-          if (refreshed) {
-            // Actualizar token en headers y reintentar
-            const { getStoredTokens } = useAuth()
-            const tokens = getStoredTokens()
-            if (tokens?.token) {
-              fetchOptions.headers = {
-                ...fetchOptions.headers,
-                'Authorization': `Bearer ${tokens.token}`
+        // Si el token expiró y no estamos en una operación de autenticación, intentar renovarlo
+        const isAuthOperation = url === authEndpoints.login || url === authEndpoints.register || url === authEndpoints.refreshToken
+        
+        if (response.status === 401 && !isPublic && !isAuthOperation) {
+        
+          // Solo intentar renovar si la característica está habilitada
+          if (tokenConfig.useTokenRefresh) {
+            const refreshed = await this.refreshTokens()
+            
+            if (refreshed) {
+              // Actualizar token en headers y reintentar
+              const { getStoredTokens } = useAuth()
+              const tokens = getStoredTokens()
+              
+              if (tokens?.token) {
+                // Crear nueva petición con el token actualizado
+                fetchOptions.headers = {
+                  ...fetchOptions.headers,
+                  'Authorization': `Bearer ${tokens.token}`
+                }
+                
+                try {
+                  response = await fetch(fullUrl, fetchOptions)
+                } catch (retryError) {
+                  throw retryError
+                }
               }
-              response = await fetch(fullUrl, fetchOptions)
+            } else {
+              // Si no se pudo renovar, limpiar tokens y redirigir a login
+              localStorage.removeItem(tokenConfig.storageKey)
+              
+              
+              try {
+                const { error: showError } = useNotifications()
+                showError('Su sesión ha expirado. Por favor, inicie sesión nuevamente.')
+              } catch (notificationError) {
+                console.warn('[httpClient] Error al mostrar notificación de sesión expirada', notificationError)
+              }
+              
+              // Dar tiempo al usuario para ver la notificación antes de redirigir
+              setTimeout(() => {
+                window.location.href = '/login'
+              }, 1500)
+              
+              throw new Error('Sesión expirada')
             }
           } else {
-            // Si no se pudo renovar, limpiar tokens y redirigir a login
+            // La renovación de tokens está desactivada, ir directamente a login
+            console.warn('[httpClient] Renovación de tokens desactivada, redirigiendo a login')
             localStorage.removeItem(tokenConfig.storageKey)
-            window.location.href = '/login'
+            
+            try {
+              const { error: showError } = useNotifications()
+              showError('Su sesión ha expirado. Por favor, inicie sesión nuevamente.')
+            } catch (notificationError) {
+              console.warn('[httpClient] Error al mostrar notificación de sesión expirada', notificationError)
+            }
+            
+            // Dar tiempo al usuario para ver la notificación antes de redirigir
+            setTimeout(() => {
+              window.location.href = '/login'
+            }, 1500)
+            
             throw new Error('Sesión expirada')
           }
         }
@@ -169,16 +257,34 @@ class HttpClientImpl implements HttpClient {
         if (response.status === 204) {
           return {} as T
         }
-
-        return response.json()
+        
+        // Obtener y procesar la respuesta JSON
+        const jsonData = await response.json()
+        
+        return jsonData
       } catch (error) {
         if (error instanceof Error) {
           if (error.name === 'AbortError') {
             throw new Error('La petición ha excedido el tiempo límite')
           }
+          
+          // En caso de error 401 ya manejado por el flujo de renovación de token,
+          // no mostrar notificación adicional
+          if (error.message === 'Sesión expirada') {
+            throw error
+          }
+          
           const errorMessage = error.message || 'Error desconocido en la petición'
-          const { error: showError } = useNotifications()
-          showError(errorMessage)
+          console.error(`[httpClient] Error en petición a ${url}:`, errorMessage)
+          
+          try {
+            const { error: showError } = useNotifications()
+            showError(errorMessage)
+          } catch (notificationError) {
+            // Si hay un error al mostrar la notificación, solo lo registramos
+            console.warn('Error al mostrar notificación:', notificationError)
+          }
+          
           throw error
         }
         throw new Error('Error desconocido en la petición')
@@ -233,3 +339,43 @@ class HttpClientImpl implements HttpClient {
 
 // Instancia única del cliente HTTP
 export const httpClient = new HttpClientImpl()
+
+/**
+ * Función para desactivar la renovación de tokens
+ * Útil cuando el backend no tiene el endpoint necesario para refrescar tokens
+ */
+export const disableTokenRefresh = () => {
+  if (tokenConfig.useTokenRefresh) {
+    // @ts-ignore - Modificamos la propiedad readonly en tiempo de ejecución
+    tokenConfig.useTokenRefresh = false;
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Función para activar la renovación de tokens
+ */
+export const enableTokenRefresh = () => {
+  if (!tokenConfig.useTokenRefresh) {
+    // @ts-ignore - Modificamos la propiedad readonly en tiempo de ejecución
+    tokenConfig.useTokenRefresh = true;
+    return true;
+  }
+  return false;
+}
+
+// Exponer funciones de configuración en el objeto window
+if (typeof window !== 'undefined') {
+  const w = window as any;
+  w.httpClientConfig = {
+    disableTokenRefresh,
+    enableTokenRefresh,
+    getConfig: () => ({
+      baseUrl: httpConfig.baseUrl,
+      useTokenRefresh: tokenConfig.useTokenRefresh,
+      loginEndpoint: authEndpoints.login,
+      refreshEndpoint: authEndpoints.refreshToken,
+    })
+  };
+}

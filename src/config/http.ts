@@ -38,7 +38,8 @@ export const tokenConfig = {
   storageKey: 'auth_tokens',
   headerName: 'Authorization',
   tokenPrefix: 'Bearer',
-  refreshThreshold: 5 * 60 * 1000 // 5 minutos en milisegundos
+  refreshThreshold: 5 * 60 * 1000, // 5 minutos en milisegundos
+  useTokenRefresh: true // Flag para activar/desactivar la renovación de tokens
 }
 
 // Rutas públicas que no requieren autenticación
