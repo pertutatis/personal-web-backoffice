@@ -44,7 +44,7 @@ Cypress.Commands.add('register', (email: string, password: string) => {
     }
   });
 
-  cy.url().should('include', '/dashboard');
+  cy.url().should('include', '/');
 });
 
 // Comando de logout 

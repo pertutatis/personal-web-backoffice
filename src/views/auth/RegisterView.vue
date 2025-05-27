@@ -173,8 +173,8 @@ const handleSubmit = async () => {
     isLoading.value = true;
     await authStore.register(email.value, password.value);
 
-    // Redirect to dashboard
-    router.push("/dashboard");
+    // Redirect to home
+    router.push("/");
   } catch (e: any) {
     error.value = e.message || "Ha ocurrido un error";
   } finally {

@@ -65,7 +65,7 @@ describe('Autenticación', () => {
       cy.get('[data-test="login-button"]').click();
       
       cy.wait('@loginSuccess');
-      cy.url().should('include', '/dashboard');
+      cy.url().should('include', '/');
       cy.window().its('localStorage')
         .invoke('getItem', 'auth_tokens')
         .should('exist');
@@ -155,7 +155,7 @@ describe('Autenticación', () => {
       cy.get('[data-test="register-button"]').click();
       
       cy.wait('@registerSuccess');
-      cy.url().should('include', '/dashboard');
+      cy.url().should('include', '/');
       cy.window().its('localStorage')
         .invoke('getItem', 'auth_tokens')
         .should('exist');

@@ -150,7 +150,7 @@ const handleSubmit = async () => {
     await authStore.login(email.value, password.value)
 
     // Redirect
-    const redirectPath = route.query.redirect as string || '/dashboard'
+    const redirectPath = route.query.redirect as string || '/'
     router.push(redirectPath)
   } catch (e: any) {
     error.value = e.message || 'Ha ocurrido un error'
