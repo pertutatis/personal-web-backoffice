@@ -178,12 +178,18 @@
           <router-link to="/libros/nuevo" class="create-book-link">Crear un libro</router-link>
         </div>
         <div v-else class="books-selection">
-          <div 
+          <label 
             v-for="book in bookOptions" 
             :key="book.id" 
             :class="['book-checkbox', { 'selected': isBookSelected(book.id) }]"
-            @click="toggleBookSelection(book.id)"
           >
+            <input 
+              type="checkbox" 
+              :value="book.id" 
+              :checked="isBookSelected(book.id)"
+              @change="toggleBookSelection(book.id)"
+              class="checkbox-input"
+            />
             <div class="checkbox">
               <svg v-if="isBookSelected(book.id)" xmlns="http://www.w3.org/2000/svg" class="check-icon" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
@@ -193,7 +199,7 @@
               <strong>{{ book.title }}</strong>
               <span>{{ book.author }}</span>
             </div>
-          </div>
+          </label>
         </div>
       </div>
 
@@ -202,7 +208,7 @@
         <label class="form-label">Enlaces relacionados</label>
         <div class="related-links">
           <div v-if="form.relatedLinks.length === 0" class="no-links">
-            No hay enlaces relacionados. Haz clic en "Añadir enlace" para agregar uno.
+            No hay enlaces relacionados. Haz clic en "Añadir enlace relacionado" para agregar uno.
           </div>
           <div 
             v-for="(link, index) in form.relatedLinks" 
@@ -216,7 +222,7 @@
                   :id="'link-text-' + index"
                   type="text"
                   v-model="link.text"
-                  placeholder="Texto a mostrar"
+                  placeholder="Texto del enlace"
                   class="form-input"
                 />
               </div>
@@ -250,7 +256,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            Añadir enlace
+            Añadir enlace relacionado
           </button>
         </div>
       </div>
@@ -270,13 +276,61 @@
           </span>
           <span v-else>Guardar</span>
         </button>
+        <button
+          v-if="canPublish"
+          type="button"
+          @click="onPublish"
+          :disabled="isPublishing"
+          data-cy="article-publish-button"
+          class="publish-button"
+        >
+          <span v-if="isPublishing">
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Publicando...
+          </span>
+          <span v-else>Publicar</span>
+        </button>
       </div>
     </form>
+
+    <!-- Modal de confirmación para publicar -->
+    <div v-if="showPublishModal" class="modal-backdrop" data-cy="publish-modal">
+      <div class="modal">
+        <div class="modal-content">
+          <h3 class="modal-title">Confirmar publicación</h3>
+          <p class="modal-text">
+            ¿Estás seguro de que deseas publicar este artículo? 
+            <br><br>
+            <span class="modal-warning">Una vez publicado, no podrás volver a convertirlo en borrador.</span>
+          </p>
+          <div class="modal-actions">
+            <button 
+              @click="showPublishModal = false" 
+              class="modal-button cancel-button"
+              data-cy="cancel-publish-button"
+            >
+              Cancelar
+            </button>
+            <button 
+              @click="confirmPublish" 
+              :disabled="isPublishing"
+              class="modal-button publish-confirm-button"
+              data-cy="confirm-publish-button"
+            >
+              {{ isPublishing ? 'Publicando...' : 'Publicar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, toRefs } from 'vue';
+import { ref, computed, watch, onMounted, toRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { v4 as uuidv4 } from 'uuid';
 import { marked } from 'marked';
@@ -291,7 +345,7 @@ const props = defineProps<{ id?: string }>();
 const route = useRoute();
 const router = useRouter();
 const uiStore = useUIStore();
-const { id } = toRefs(props);
+const { id } = toRef(props);
 
 // Estado del formulario
 const form = ref({
@@ -304,24 +358,44 @@ const form = ref({
   relatedLinks: [] as Array<{ text: string; url: string }>
 });
 
+// Estado del artículo actual (para determinar si se puede publicar)
+const currentArticle = ref<Article | null>(null);
+
 // Estado de UI
 const isLoading = ref(false);
 const isSaving = ref(false);
+const isPublishing = ref(false);
 const loadError = ref('');
 const errors = ref<Record<string, string>>({});
 const activeTab = ref<'write' | 'preview'>('write');
 const isLoadingBooks = ref(false);
 const bookOptions = ref<Book[]>([]);
+const showPublishModal = ref(false);
 
 // Computados
 const isEditMode = computed(() => Boolean(articleId.value));
 const articleId = computed(() => id?.value || route.params.id as string);
 const hasErrors = computed(() => Object.keys(errors.value).length > 0);
 
-const renderedContent = computed(() => {
-  if (!form.value.content) return '<p class="text-gray-400">No hay contenido para visualizar...</p>';
-  const rawHtml = marked(form.value.content);
-  return DOMPurify.sanitize(rawHtml);
+const renderedContent = ref('<p class="text-gray-400">No hay contenido para visualizar...</p>');
+
+watch(
+  () => form.value.content,
+  async (newContent: string) => {
+    if (!newContent) {
+      renderedContent.value = '<p class="text-gray-400">No hay contenido para visualizar...</p>';
+      return;
+    }
+    const rawHtml = await marked(newContent);
+    renderedContent.value = DOMPurify.sanitize(rawHtml);
+  },
+  { immediate: true }
+);
+
+// Computed para verificar si se puede publicar
+const canPublish = computed(() => {
+  return isEditMode.value && 
+         currentArticle.value?.status === ArticleStatus.DRAFT;
 });
 
 // Métodos
@@ -364,7 +438,7 @@ function validateForm() {
   }
   
   // Validar enlaces relacionados
-  form.value.relatedLinks.forEach((link, index) => {
+  form.value.relatedLinks.forEach((link: { text: string; url: string }, index: number) => {
     if (link.text.trim() && !link.url.trim()) {
       newErrors[`link-${index}`] = `El enlace #${index + 1} debe tener una URL`;
     } else if (!link.text.trim() && link.url.trim()) {
@@ -390,6 +464,9 @@ async function loadArticle() {
   
   try {
     const article = await articlesApi.getArticle(articleId.value);
+    
+    // Guardar el artículo actual
+    currentArticle.value = article;
     
     // Rellenar formulario con datos del artículo
     form.value = {
@@ -498,7 +575,8 @@ async function saveArticle() {
         content: form.value.content,
         slug: form.value.slug,
         bookIds: form.value.bookIds,
-        relatedLinks: form.value.relatedLinks
+        relatedLinks: form.value.relatedLinks,
+        status: ArticleStatus.DRAFT
       });
       
       uiStore.addNotification({
@@ -521,6 +599,38 @@ async function saveArticle() {
 
 function cancel() {
   router.push(isEditMode.value ? `/articulos/${articleId.value}` : '/articulos');
+}
+
+// Función para manejar la publicación
+function onPublish() {
+  showPublishModal.value = true;
+}
+
+async function confirmPublish() {
+  if (!currentArticle.value?.id) return;
+  
+  isPublishing.value = true;
+  
+  try {
+    await articlesApi.publishArticle(currentArticle.value.id);
+    
+    // Actualizar el estado del artículo actual
+    currentArticle.value.status = ArticleStatus.PUBLISHED;
+    
+    uiStore.addNotification({
+      type: 'success',
+      message: 'Artículo publicado correctamente'
+    });
+    
+    showPublishModal.value = false;
+  } catch (err: any) {
+    uiStore.addNotification({
+      type: 'error',
+      message: `Error al publicar el artículo: ${err.message || 'Error desconocido'}`
+    });
+  } finally {
+    isPublishing.value = false;
+  }
 }
 
 // Observadores
@@ -749,6 +859,10 @@ onMounted(async () => {
   @apply flex cursor-pointer items-center space-x-3 rounded-md border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600;
 }
 
+.checkbox-input {
+  @apply sr-only;
+}
+
 .book-checkbox.selected {
   @apply border-blue-600 bg-blue-50 ring-2 ring-blue-600 dark:bg-blue-900/30 dark:ring-blue-500;
 }
@@ -788,5 +902,50 @@ onMounted(async () => {
 
 .save-button {
   @apply inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-400 disabled:hover:bg-blue-400 dark:disabled:bg-blue-800;
+}
+
+.publish-button {
+  @apply inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-green-400 disabled:hover:bg-green-400 dark:disabled:bg-green-800;
+}
+
+/* Modal */
+.modal-backdrop {
+  @apply fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50;
+}
+
+.modal {
+  @apply w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800;
+}
+
+.modal-content {
+  @apply space-y-4;
+}
+
+.modal-title {
+  @apply text-lg font-bold text-gray-900 dark:text-white;
+}
+
+.modal-text {
+  @apply text-gray-600 dark:text-gray-300;
+}
+
+.modal-warning {
+  @apply font-medium text-red-600 dark:text-red-400;
+}
+
+.modal-actions {
+  @apply flex justify-end space-x-3 pt-4;
+}
+
+.modal-button {
+  @apply min-w-[80px] rounded-md px-4 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.modal-button.cancel-button {
+  @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
+}
+
+.publish-confirm-button {
+  @apply bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:bg-green-400;
 }
 </style>

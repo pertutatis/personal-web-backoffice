@@ -63,6 +63,7 @@
             <th>Título</th>
             <th>Extracto</th>
             <th>Slug</th>
+            <th>Estado</th>
             <th>Fecha de Creación</th>
             <th>Última Actualización</th>
             <th class="actions-column">Acciones</th>
@@ -80,6 +81,16 @@
             </td>
             <td class="slug-column">
               <span class="slug-text">{{ article.slug }}</span>
+            </td>
+            <td class="status-column" data-cy="article-status">
+              <span 
+                :class="[
+                  'status-badge',
+                  article.status === ArticleStatus.PUBLISHED ? 'status-published' : 'status-draft'
+                ]"
+              >
+                {{ getStatusLabel(article.status) }}
+              </span>
             </td>
             <td>{{ formatDate(article.createdAt) }}</td>
             <td>{{ article.updatedAt ? formatDate(article.updatedAt) : '-' }}</td>
@@ -152,7 +163,7 @@
             <button @click="cancelDelete" class="modal-button cancel-button">
               Cancelar
             </button>
-            <button @click="deleteArticle" class="modal-button confirm-button" :disabled="isDeleting">
+            <button @click="deleteArticle" class="modal-button confirm-button" :disabled="isDeleting" data-cy="confirm-delete-button">
               {{ isDeleting ? 'Eliminando...' : 'Eliminar' }}
             </button>
           </div>
@@ -256,6 +267,18 @@ function formatDate(dateString: string): string {
     hour: '2-digit',
     minute: '2-digit'
   }).format(date);
+}
+
+// Obtener etiqueta del estado en español
+function getStatusLabel(status: ArticleStatus): string {
+  switch (status) {
+    case ArticleStatus.DRAFT:
+      return 'Borrador';
+    case ArticleStatus.PUBLISHED:
+      return 'Publicado';
+    default:
+      return status;
+  }
 }
 
 // Mostrar modal de confirmación para eliminar
@@ -415,6 +438,10 @@ onMounted(() => {
 
 .status-badge {
   @apply inline-block rounded-full px-2 py-1 text-xs font-medium;
+}
+
+.status-column {
+  @apply w-24;
 }
 
 .status-draft {

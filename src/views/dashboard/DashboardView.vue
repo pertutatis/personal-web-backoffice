@@ -2,7 +2,7 @@
   <div class="dashboard p-6 bg-gray-100 dark:bg-gray-900">
     <section class="welcome-section mb-8 flex items-center justify-between bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
       <div>
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">Panel de Control</h1>
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2" data-cy="page-title">Dashboard</h1>
         <p class="text-gray-600 dark:text-gray-300">
           Gestiona el contenido de tu blog personal desde este panel de administración.
         </p>

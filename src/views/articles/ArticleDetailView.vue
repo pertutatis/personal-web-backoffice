@@ -50,7 +50,7 @@
     <div v-else-if="article" class="article-content">
       <!-- Encabezado y metadata -->
       <div class="article-header">
-        <h1 class="article-title">{{ article.title }}</h1>
+        <h1 class="article-title" data-cy="article-title">{{ article.title }}</h1>
         <div class="article-slug">
           <span class="slug-label">Slug:</span>
           <span class="slug-value">{{ article.slug }}</span>
@@ -72,7 +72,7 @@
       </div>
 
       <!-- Extracto -->
-      <div class="article-excerpt">
+      <div class="article-excerpt" data-cy="article-excerpt">
         <h3 class="section-title">Extracto</h3>
         <div class="excerpt-content">
           {{ article.excerpt }}
@@ -80,7 +80,7 @@
       </div>
 
       <!-- Contenido principal con Markdown -->
-      <div class="article-body">
+      <div class="article-body" data-cy="article-content">
         <h3 class="section-title">Contenido</h3>
         <div v-if="article.content" class="markdown-preview" v-html="renderedContent"></div>
         <div v-else class="empty-content">
@@ -145,7 +145,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, toRefs } from 'vue';
+import { ref, computed, onMounted, toRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
@@ -153,13 +153,14 @@ import { articlesApi } from '../../composables/api/articlesApi';
 import { booksApi } from '../../composables/api/booksApi';
 import { useUIStore } from '../../stores/uiStore';
 import { Article, ArticleStatus, Book } from '../../types/models';
+import { watch } from 'vue';
 
 // Props y store
 const props = defineProps<{ id?: string }>();
 const route = useRoute();
 const router = useRouter();
 const uiStore = useUIStore();
-const { id } = toRefs(props);
+const { id } = toRef(props);
 
 // Estado local
 const article = ref<Article | null>(null);
@@ -173,11 +174,20 @@ const showDeleteModal = ref(false);
 const articleId = computed(() => id?.value || route.params.id as string);
 
 // Contenido renderizado con Markdown
-const renderedContent = computed(() => {
-  if (!article.value?.content) return '';
-  const rawHtml = marked(article.value.content);
-  return DOMPurify.sanitize(rawHtml);
-});
+const renderedContent = ref('');
+
+watch(
+  () => article.value?.content,
+  async (content: string | undefined) => {
+    if (!content) {
+      renderedContent.value = '';
+      return;
+    }
+    const rawHtml = await marked(content);
+    renderedContent.value = DOMPurify.sanitize(rawHtml);
+  },
+  { immediate: true }
+);
 
 // Cargar el artículo
 async function loadArticle() {
@@ -213,11 +223,11 @@ async function loadRelatedBooks() {
   try {
     // En un caso real, tendríamos un endpoint para obtener múltiples libros por ID
     // Aquí simulamos con múltiples llamadas por simplicidad
-    const bookPromises = article.value.bookIds.map(id => 
+    const bookPromises = article.value.bookIds.map((id: string) => 
       booksApi.getBook(id).catch(() => null)
     );
     const results = await Promise.all(bookPromises);
-    books.value = results.filter(book => book !== null) as Book[];
+    books.value = results.filter((book: Book | null) => book !== null) as Book[];
   } catch (err: any) {
     uiStore.addNotification({
       type: 'warning',
@@ -240,12 +250,12 @@ function formatDate(dateString: string): string {
 
 // Formatear estados
 function formatStatus(status: ArticleStatus): string {
-  return status === 'draft' ? 'Borrador' : 'Publicado';
+  return status === ('draft' as ArticleStatus) ? 'Borrador' : 'Publicado';
 }
 
 // Obtener clase CSS para el estado
 function getStatusClass(status: ArticleStatus): string {
-  return status === 'draft' ? 'status-draft' : 'status-published';
+  return status === ('draft' as ArticleStatus) ? 'status-draft' : 'status-published';
 }
 
 // Mostrar modal de confirmación para eliminar

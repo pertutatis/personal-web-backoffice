@@ -16,6 +16,9 @@ Este proyecto consiste en la creación de un backoffice para gestionar artículo
    - Edición con editor de markdown
    - Eliminación con confirmación
    - Relación con libros
+   - **Sistema de Estados**: DRAFT y PUBLISHED
+   - **Publicación**: Transición irreversible de borrador a publicado
+   - **Indicadores visuales** de estado en listado y formularios
 4. **Gestión de Libros**:
    - Listado paginado con búsqueda
    - Creación con validación de ISBN
@@ -47,6 +50,7 @@ Este proyecto consiste en la creación de un backoffice para gestionar artículo
    - GET `/backoffice/articles/{id}`: Obtener uno
    - PUT `/backoffice/articles/{id}`: Actualizar
    - DELETE `/backoffice/articles/{id}`: Eliminar
+   - POST `/backoffice/articles/{id}/publish`: Publicar artículo
 3. **Libros**:
    - GET `/backoffice/books`: Listar con paginación
    - POST `/backoffice/books`: Crear nuevo
@@ -113,6 +117,11 @@ Este proyecto consiste en la creación de un backoffice para gestionar artículo
    - Configuración de httpClient con interceptores
    - Implementación de authStore
    - Implementación de protección de rutas
+   - **Sistema de Estados de Artículos**:
+     - Actualización de tipos TypeScript
+     - Implementación de API de publicación
+     - Interfaz para gestión de estados
+     - Tests unitarios y E2E para estados
    - Ejecución de tests E2E
 
 ## Potenciales desafíos y soluciones
@@ -125,5 +134,7 @@ Este proyecto consiste en la creación de un backoffice para gestionar artículo
 
 ## Referencias
 - [ADR 006: Arquitectura de Autenticación](../adr/006-autenticacion.md)
+- [ADR 007: Gestión de Estados de Artículos](../adr/007-gestion-estados-articulos.md)
 - [OBR 003: Reglas de Autenticación](../obr/003-autenticacion.md)
+- [OBR 004: Gestión de Estados de Artículos](../obr/004-gestion-estados-articulos.md)
 - [API Spec](../api/openapi.json)

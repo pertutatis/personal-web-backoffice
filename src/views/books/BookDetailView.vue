@@ -36,12 +36,12 @@
 
             <div>
               <dt class="text-sm font-medium text-gray-500">Autor</dt>
-              <dd class="mt-1">{{ book.author }}</dd>
+              <dd class="mt-1" data-cy="book-author">{{ book.author }}</dd>
             </div>
 
             <div>
               <dt class="text-sm font-medium text-gray-500">ISBN</dt>
-              <dd class="mt-1">{{ formatIsbn(book.isbn) }}</dd>
+              <dd class="mt-1" data-cy="book-isbn">{{ formatIsbn(book.isbn) }}</dd>
             </div>
             
             <div>

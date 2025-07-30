@@ -2,7 +2,7 @@
  * Servicios API para libros
  */
 import { httpClient } from '../../utils/httpClient';
-import { Book, BookCreate, BookUpdate, PaginatedResponse, QueryParams } from '../../types/models';
+import { Book, BookCreate, BookUpdate, PaginatedResponse, PaginationParams } from '../../types/models';
 
 const BOOKS_ENDPOINT = '/backoffice/books';
 
@@ -10,8 +10,10 @@ export const booksApi = {
   /**
    * Obtiene un listado paginado de libros
    */
-  getBooks(params?: QueryParams): Promise<PaginatedResponse<Book>> {
-    return httpClient.get<PaginatedResponse<Book>>(BOOKS_ENDPOINT, { params });
+  getBooks(params?: PaginationParams): Promise<PaginatedResponse<Book>> {
+    return httpClient.get<PaginatedResponse<Book>>(BOOKS_ENDPOINT, { 
+      params: params as Record<string, string | number> 
+    });
   },
 
   /**

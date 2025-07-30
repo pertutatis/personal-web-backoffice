@@ -4,7 +4,7 @@ interface ApiConfig {
 }
 
 export const httpConfig: ApiConfig = {
-  baseUrl: 'http://localhost:3000/api',
+  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
   timeout: 5000
 }
 
@@ -30,7 +30,7 @@ export const errorMessages: Record<number, string> = {
 export const authEndpoints = {
   login: '/backoffice/auth/login',
   register: '/backoffice/auth/register',
-  refreshToken: '/backoffice/auth/refresh-token'
+  refreshToken: '/backoffice/auth/refresh'
 }
 
 // Configuración de tokens

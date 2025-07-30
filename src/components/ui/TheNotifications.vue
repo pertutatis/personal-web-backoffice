@@ -6,6 +6,7 @@
         :key="notification.id"
         class="notification"
         :class="`notification--${notification.type}`"
+        :data-cy="`notification-${notification.type}`"
       >
         <div class="notification__content">
           <component
@@ -23,15 +24,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted } from 'vue'
-import { useNotifications } from '@/composables/useNotifications'
+import { defineComponent, computed } from 'vue'
+import { useUIStore } from '@/stores/uiStore'
 import {
   XMarkIcon,
   CheckIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon
 } from '@heroicons/vue/24/outline'
-import type { NotificationType, Notification } from '@/composables/useNotifications'
+
+type NotificationType = 'success' | 'error' | 'info' | 'warning'
 
 export default defineComponent({
   name: 'TheNotifications',
@@ -42,11 +44,7 @@ export default defineComponent({
     InformationCircleIcon
   },
   setup() {
-    const notificationsApi = useNotifications()
-    const { setNotificationComponent } = notificationsApi
-
-    // Usar un array local para las notificaciones
-    const notifications = ref<Notification[]>([])
+    const uiStore = useUIStore()
 
     const getIcon = (type: NotificationType) => {
       switch (type) {
@@ -63,36 +61,12 @@ export default defineComponent({
       }
     }
 
-    const remove = (id: number) => {
-      notifications.value = notifications.value.filter(n => n.id !== id)
+    const remove = (id: string) => {
+      uiStore.removeNotification(id)
     }
-
-    const add = (notification: Omit<Notification, 'id'>) => {
-      try {
-        const id = Date.now()
-        const newNotification = { ...notification, id }
-        
-        // Usar spread para crear una nueva referencia del array
-        notifications.value = [...notifications.value, newNotification]
-
-        if (notification.timeout) {
-          setTimeout(() => remove(id), notification.timeout)
-        }
-      } catch (error) {
-        console.error('Error al añadir notificación:', error)
-      }
-    }
-
-    onMounted(() => {
-      // Registrar el componente para que pueda ser usado por el sistema de notificaciones
-      setNotificationComponent({
-        add,
-        remove
-      })
-    })
 
     return {
-      notifications: computed(() => notifications.value),
+      notifications: computed(() => uiStore.notifications),
       getIcon,
       remove
     }

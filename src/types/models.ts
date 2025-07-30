@@ -8,8 +8,7 @@ export interface BaseModel {
 // Tipos para artículos
 export enum ArticleStatus {
   DRAFT = 'DRAFT',
-  PUBLISHED = 'PUBLISHED',
-  ARCHIVED = 'ARCHIVED'
+  PUBLISHED = 'PUBLISHED'
 }
 
 export interface RelatedLink {

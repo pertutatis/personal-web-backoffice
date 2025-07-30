@@ -148,7 +148,7 @@
             <button @click="cancelDelete" class="modal-button cancel-button">
               Cancelar
             </button>
-            <button @click="deleteBook" class="modal-button confirm-button" :disabled="isDeleting">
+            <button @click="deleteBook" class="modal-button confirm-button" :disabled="isDeleting" data-cy="confirm-delete-button">
               {{ isDeleting ? 'Eliminando...' : 'Eliminar' }}
             </button>
           </div>
