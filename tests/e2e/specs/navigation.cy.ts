@@ -25,6 +25,7 @@ describe('Navegación básica', () => {
     cy.get('[data-cy=new-article-button]').should('be.visible');
   });
   
+  // TO DO: no cambia colores
   it('Debería cambiar entre modo claro y oscuro', () => {
     // Verificar el estado inicial (normalmente modo claro)
     cy.get('html').should('not.have.class', 'dark');
@@ -38,6 +39,7 @@ describe('Navegación básica', () => {
     cy.get('html').should('not.have.class', 'dark');
   });
   
+  //not ready to responsive
   it.skip('Debería colapsar y expandir el sidebar en dispositivos móviles', () => {
     // Establecer viewport de móvil
     cy.viewport('iphone-x');
