@@ -112,7 +112,7 @@ Cypress.Commands.add('login', (email: string, password: string) => {
     body: { 
       items: [
         {
-          id: 'book-123e4567-e89b-12d3-a456-426614174000',
+          id: '123e4567-e89b-12d3-a456-426614174000',
           title: 'Libro de Prueba E2E',
           author: 'Autor Test',
           isbn: '978-3-16-148410-0',
@@ -123,7 +123,7 @@ Cypress.Commands.add('login', (email: string, password: string) => {
           updatedAt: '2024-01-01T00:00:00Z'
         },
         {
-          id: 'book-456e7890-e89b-12d3-a456-426614174001',
+          id: '456e7890-e89b-12d3-a456-426614174001',
           title: 'Segundo Libro E2E',
           author: 'Otro Autor',
           isbn: '978-0-123-45678-9',
@@ -174,6 +174,15 @@ Cypress.Commands.add('login', (email: string, password: string) => {
   }).as('publishArticle');
   
   // Interceptors para libros
+  cy.intercept('PUT', '/api/backoffice/books/*', (req) => {
+    req.reply({
+      statusCode: 200,
+      body: {
+        ...req.body,
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }).as('updateBook');
   cy.intercept('POST', '/api/backoffice/books', (req) => {
     const newId = `book-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     req.reply({
@@ -211,7 +220,7 @@ Cypress.Commands.add('login', (email: string, password: string) => {
           id: bookId,
           title: 'Libro Dinámico',
           author: 'Autor Dinámico',
-          isbn: '978-0-000-00000-0',
+          isbn: '978-84-376-0494-7',
           description: 'Descripción dinámica.',
           coverImage: null,
           purchaseLink: null,
