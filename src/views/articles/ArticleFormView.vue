@@ -547,9 +547,9 @@ function insertMarkdown(prefix: string, suffix: string) {
 
 async function saveArticle() {
   if (!validateForm()) return;
-  
+
   isSaving.value = true;
-  
+
   try {
     if (isEditMode.value) {
       // Actualizar artículo existente
@@ -561,14 +561,13 @@ async function saveArticle() {
         bookIds: form.value.bookIds,
         relatedLinks: form.value.relatedLinks
       });
-      
       uiStore.addNotification({
         type: 'success',
         message: 'Artículo actualizado correctamente'
       });
     } else {
       // Crear nuevo artículo
-      await articlesApi.createArticle({
+      console.log('[E2E] Enviando datos a createArticle:', {
         id: form.value.id,
         title: form.value.title,
         excerpt: form.value.excerpt,
@@ -578,16 +577,27 @@ async function saveArticle() {
         relatedLinks: form.value.relatedLinks,
         status: ArticleStatus.DRAFT
       });
-      
+      const response = await articlesApi.createArticle({
+        id: form.value.id,
+        title: form.value.title,
+        excerpt: form.value.excerpt,
+        content: form.value.content,
+        slug: form.value.slug,
+        bookIds: form.value.bookIds,
+        relatedLinks: form.value.relatedLinks,
+        status: ArticleStatus.DRAFT
+      });
+      console.log('[E2E] Respuesta de createArticle:', response);
       uiStore.addNotification({
         type: 'success',
         message: 'Artículo creado correctamente'
       });
     }
-    
+
     // Redireccionar al listado
     router.push('/articulos');
   } catch (err: any) {
+    console.error('[E2E] Error al guardar el artículo:', err);
     uiStore.addNotification({
       type: 'error',
       message: `Error al guardar el artículo: ${err.message || 'Error desconocido'}`
@@ -857,6 +867,7 @@ onMounted(async () => {
 
 .book-checkbox {
   @apply flex cursor-pointer items-center space-x-3 rounded-md border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600;
+  position: relative;
 }
 
 .checkbox-input {
