@@ -1,4 +1,28 @@
 describe('Gestión de Artículos', () => {
+  it('Debería permitir guardar tras corregir un error de validación en la creación', () => {
+    cy.get('[data-cy=new-article-button]').click();
+
+    // Dejamos el título vacío para provocar un error de validación
+    cy.get('[data-cy=article-title-input]').clear();
+    cy.get('[data-cy=article-slug-input]').clear().type(`articulo-validacion-e2e-${Date.now()}`);
+    cy.get('[data-cy=article-excerpt-input]').type('Extracto para test de validación.');
+    cy.get('[data-cy=article-content-input]').type('Contenido para test de validación.');
+
+    // Intentamos enviar el formulario (debería fallar la validación)
+    cy.get('[data-cy=article-submit-button]').click();
+    cy.get('[data-cy=article-title-error]').scrollIntoView().should('be.visible');
+
+    // Corregimos el error rellenando el título
+    const fixedTitle = `Artículo validación E2E ${Date.now()}`;
+    cy.get('[data-cy=article-title-input]').type(fixedTitle);
+
+    // Volvemos a enviar el formulario
+    cy.get('[data-cy=article-submit-button]').click();
+
+    // Verificamos que se muestra la notificación de éxito y redirige
+    cy.get('[data-cy=notification-success]', { timeout: 10000 }).should('be.visible');
+    cy.url().should('include', '/articulos');
+  });
   beforeEach(() => {
     // Autenticamos al usuario antes de cada prueba
     cy.login('usuario_test', 'contraseña_test');

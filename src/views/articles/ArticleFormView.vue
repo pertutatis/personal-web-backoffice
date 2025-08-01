@@ -664,6 +664,28 @@ watch(
   }
 );
 
+// Limpiar error de slug al corregir
+watch(
+  () => form.value.slug,
+  () => {
+    if (errors.value.slug) {
+      const { slug, ...rest } = errors.value;
+      errors.value = rest;
+    }
+  }
+);
+
+// Limpiar error de excerpt al corregir
+watch(
+  () => form.value.excerpt,
+  () => {
+    if (errors.value.excerpt) {
+      const { excerpt, ...rest } = errors.value;
+      errors.value = rest;
+    }
+  }
+);
+
 // Inicialización
 onMounted(async () => {
   // Generar ID para nuevo artículo
