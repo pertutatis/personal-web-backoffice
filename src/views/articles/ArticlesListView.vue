@@ -434,6 +434,7 @@ onMounted(() => {
 
 .article-title {
   @apply font-medium text-blue-600 hover:underline dark:text-blue-400;
+  text-wrap: auto;
 }
 
 .status-badge {

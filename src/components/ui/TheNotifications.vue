@@ -93,6 +93,7 @@ export default defineComponent({
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   background-color: white;
   transition: all 0.3s ease;
+  color: #666;
 }
 
 .notification__content {
