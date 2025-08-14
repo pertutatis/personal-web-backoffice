@@ -24,6 +24,11 @@ Este proyecto consiste en la creación de un backoffice para gestionar artículo
    - Creación con validación de ISBN
    - Edición y eliminación
    - Visualización de artículos relacionados
+5. **Gestión de Series**:
+   - CRUD completo de series (crear, editar, eliminar, listar, ver detalle)
+   - Asociación opcional de una serie a cada artículo (un artículo solo puede tener una serie)
+   - Selección/desasociación de serie en formularios de artículos
+   - Validaciones: título obligatorio (máx 100), descripción opcional (máx 500)
 5. **Características Globales**:
    - Tema claro/oscuro
    - Diseño responsive
@@ -57,6 +62,13 @@ Este proyecto consiste en la creación de un backoffice para gestionar artículo
    - GET `/backoffice/books/{id}`: Obtener uno
    - PUT `/backoffice/books/{id}`: Actualizar
    - DELETE `/backoffice/books/{id}`: Eliminar
+
+4. **Series**:
+   - GET `/backoffice/series`: Listar todas
+   - POST `/backoffice/series`: Crear nueva
+   - GET `/backoffice/series/{id}`: Obtener una
+   - PUT `/backoffice/series/{id}`: Actualizar
+   - DELETE `/backoffice/series/{id}`: Eliminar
 
 ## Decisiones Arquitectónicas Relevantes
 1. **Arquitectura Hexagonal** adaptada al frontend:
@@ -123,6 +135,11 @@ Este proyecto consiste en la creación de un backoffice para gestionar artículo
      - Interfaz para gestión de estados
      - Tests unitarios y E2E para estados
    - Ejecución de tests E2E
+
+4. **Series**:
+   - CRUD de series planificado e iniciado
+   - Documentación y reglas de negocio de series añadidas
+   - Tests unitarios y E2E para series en desarrollo
 
 ## Potenciales desafíos y soluciones
 1. **Seguridad de tokens**: Almacenamiento seguro y renovación

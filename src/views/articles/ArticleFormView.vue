@@ -77,7 +77,7 @@
 
       <!-- Slug -->
       <div class="form-group" :class="{ 'has-error': errors.slug }">
-        <label for="article-slug" class="form-label">Slug *</label>
+        <label for="article-slug" class="form-label">Slug</label>
         <input 
           id="article-slug"
           type="text"
@@ -167,6 +167,20 @@
         </div>
         <small v-if="errors.content" class="error-message" data-cy="article-content-error">{{ errors.content }}</small>
         <small v-else class="form-hint">Soporta sintaxis <a href="https://www.markdownguide.org/basic-syntax/" target="_blank" rel="noopener noreferrer" class="hint-link">Markdown</a></small>
+      </div>
+
+      <!-- Serie asociada -->
+      <div class="form-group">
+        <label class="form-label">Serie</label>
+        <div v-if="isLoadingSeries" class="loading-indicator">Cargando series...</div>
+        <div v-else>
+          <select v-model="form.seriesId" name="seriesId" class="form-input">
+            <option value="">Sin serie</option>
+            <option v-for="serie in seriesOptions" :key="serie.id" :value="serie.id">
+              {{ serie.title }}
+            </option>
+          </select>
+        </div>
       </div>
 
       <!-- Libros relacionados -->
@@ -337,6 +351,7 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { articlesApi } from '../../composables/api/articlesApi';
 import { booksApi } from '../../composables/api/booksApi';
+import { seriesApi } from '../../composables/api/seriesApi';
 import { useUIStore } from '../../stores/uiStore';
 import { Article, ArticleStatus, Book } from '../../types/models';
 
@@ -355,8 +370,28 @@ const form = ref({
   content: '',
   slug: '',
   bookIds: [] as string[],
-  relatedLinks: [] as Array<{ text: string; url: string }>
+  relatedLinks: [] as Array<{ text: string; url: string }>,
+  seriesId: '' as string | null
 });
+// Series
+const isLoadingSeries = ref(false);
+const seriesOptions = ref<any[]>([]);
+
+async function loadSeries() {
+  isLoadingSeries.value = true;
+  try {
+    const response = await seriesApi.getSeries({ limit: 100 });
+    seriesOptions.value = response.data;
+  } catch (err: any) {
+    uiStore.addNotification({
+      type: 'warning',
+      message: 'Error al cargar la lista de series'
+    });
+    seriesOptions.value = [];
+  } finally {
+    isLoadingSeries.value = false;
+  }
+}
 
 // Estado del artículo actual (para determinar si se puede publicar)
 const currentArticle = ref<Article | null>(null);
@@ -417,9 +452,10 @@ function validateForm() {
     newErrors.title = 'El título no puede exceder los 100 caracteres';
   }
   
-  if (!form.value.slug.trim()) {
-    newErrors.slug = 'El slug es obligatorio';
-  } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.value.slug)) {
+  // if (!form.value.slug.trim()) {
+  //   newErrors.slug = 'El slug es obligatorio';
+  // } else 
+  if (!!form.value.slug.trim() && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.value.slug)) {
     newErrors.slug = 'El slug solo puede contener letras minúsculas, números y guiones';
   }
 
@@ -474,7 +510,7 @@ async function loadArticle() {
       title: article.title,
       excerpt: article.excerpt,
       content: article.content,
-      slug: article.slug,
+      slug: article.slug || '',
       bookIds: article.bookIds || [],
       relatedLinks: article.relatedLinks || []
     };
@@ -669,7 +705,7 @@ watch(
   () => form.value.slug,
   () => {
     if (errors.value.slug) {
-      const { slug, ...rest } = errors.value;
+      const { ...rest } = errors.value;
       errors.value = rest;
     }
   }
@@ -694,9 +730,7 @@ onMounted(async () => {
   } else {
     await loadArticle();
   }
-  
-  // Cargar libros disponibles
-  await loadBooks();
+  await Promise.all([loadBooks(), loadSeries()]);
 });
 </script>
 

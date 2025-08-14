@@ -36,7 +36,6 @@ describe('Gestión de Libros', () => {
     cy.get('[data-cy=book-title-input]').type(uniqueTitle);
     cy.get('[data-cy=book-author-input]').type('Autor de Prueba E2E');
     cy.get('[data-cy=book-isbn-input]').type('9788417092290');
-    cy.get('[data-cy=book-year-input]').type('2023');
     cy.get('[data-cy=book-description-input]').type('Esta es una descripción de prueba para el libro creado durante las pruebas E2E.');
     
     // Enviamos el formulario

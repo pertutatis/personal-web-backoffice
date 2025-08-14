@@ -232,6 +232,269 @@ Cypress.Commands.add('login', (email: string, password: string) => {
   }).as('getBook');
   
   cy.intercept('DELETE', '/api/backoffice/**', { statusCode: 204 });
+
+  // Interceptar requests específicas de series (listado)
+  cy.intercept('GET', '/api/backoffice/series', {
+    statusCode: 200,
+    body: {
+      data: [
+        {
+          id: 'serie-1',
+          title: 'Serie de Prueba 1',
+          description: 'Descripción de la serie 1',
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z'
+        },
+        {
+          id: 'serie-2',
+          title: 'Serie de Prueba 2',
+          description: 'Descripción de la serie 2',
+          createdAt: '2024-01-02T00:00:00Z',
+          updatedAt: '2024-01-02T00:00:00Z'
+        }
+      ],
+      total: 2,
+      page: 1,
+      limit: 10
+    }
+  }).as('getSeries');
+
+  // Interceptar requests de serie individual
+  cy.intercept('GET', '/api/backoffice/series/*', (req) => {
+    const serieId = req.url.split('/').pop()?.split('?')[0];
+    req.reply({
+      statusCode: 200,
+      body: {
+        id: serieId,
+        title: `Serie ${serieId}`,
+        description: `Descripción de la serie ${serieId}`,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z'
+      }
+    });
+  }).as('getSerie');
+
+  // Interceptar creación de serie
+  cy.intercept('POST', '/api/backoffice/series', (req) => {
+    const newId = `serie-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    req.reply({
+      statusCode: 201,
+      body: {
+        id: newId,
+        ...req.body,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }).as('createSerie');
+
+  // Interceptar edición de serie
+  cy.intercept('PUT', '/api/backoffice/series/*', (req) => {
+    req.reply({
+      statusCode: 200,
+      body: {
+        ...req.body,
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }).as('updateSerie');
+
+  // Interceptar borrado de serie
+  cy.intercept('DELETE', '/api/backoffice/series/*', { statusCode: 204 }).as('deleteSerie');
+  
+  // Interceptar requests generales de API
+  cy.intercept('GET', '/api/backoffice/books*', { 
+    statusCode: 200, 
+    body: { 
+      items: [
+        {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          title: 'Libro de Prueba E2E',
+          author: 'Autor Test',
+          isbn: '978-3-16-148410-0',
+          description: 'Descripción del libro de prueba.',
+          coverImage: null,
+          purchaseLink: 'https://ejemplo.com/libro',
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z'
+        },
+        {
+          id: '456e7890-e89b-12d3-a456-426614174001',
+          title: 'Segundo Libro E2E',
+          author: 'Otro Autor',
+          isbn: '978-0-123-45678-9',
+          description: 'Otro libro para pruebas.',
+          coverImage: null,
+          purchaseLink: null,
+          createdAt: '2024-01-02T00:00:00Z',
+          updatedAt: '2024-01-02T00:00:00Z'
+        }
+      ], 
+      total: 2, 
+      page: 1, 
+      limit: 10 
+    } 
+  });
+  cy.intercept('POST', '/api/backoffice/articles', (req) => {
+    const newId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    req.reply({
+      statusCode: 201,
+      body: {
+        id: newId,
+        ...req.body,
+        status: 'DRAFT',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }).as('createArticle');
+  cy.intercept('PUT', '/api/backoffice/articles/*', (req) => {
+    req.reply({
+      statusCode: 200,
+      body: {
+        ...req.body,
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }).as('updateArticle');
+  cy.intercept('POST', '/api/backoffice/articles/*/publish', (req) => {
+    const articleId = req.url.split('/').slice(-2, -1)[0];
+    req.reply({
+      statusCode: 200,
+      body: {
+        id: articleId,
+        status: 'PUBLISHED',
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }).as('publishArticle');
+  
+  // Interceptors para libros
+  cy.intercept('PUT', '/api/backoffice/books/*', (req) => {
+    req.reply({
+      statusCode: 200,
+      body: {
+        ...req.body,
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }).as('updateBook');
+  cy.intercept('POST', '/api/backoffice/books', (req) => {
+    const newId = `book-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    req.reply({
+      statusCode: 201,
+      body: {
+        id: newId,
+        ...req.body,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }).as('createBook');
+  
+  cy.intercept('GET', '/api/backoffice/books/*', (req) => {
+    const bookId = req.url.split('/').pop()?.split('?')[0];
+    if (bookId === 'book-123e4567-e89b-12d3-a456-426614174000') {
+      req.reply({
+        statusCode: 200,
+        body: {
+          id: bookId,
+          title: 'Libro de Prueba E2E',
+          author: 'Autor Test',
+          isbn: '978-3-16-148410-0',
+          description: 'Descripción del libro de prueba.',
+          coverImage: null,
+          purchaseLink: 'https://ejemplo.com/libro',
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z'
+        }
+      });
+    } else {
+      req.reply({
+        statusCode: 200,
+        body: {
+          id: bookId,
+          title: 'Libro Dinámico',
+          author: 'Autor Dinámico',
+          isbn: '978-84-376-0494-7',
+          description: 'Descripción dinámica.',
+          coverImage: null,
+          purchaseLink: null,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z'
+        }
+      });
+    }
+  }).as('getBook');
+  
+  // Interceptar requests específicas de series (listado)
+  cy.intercept('GET', '/api/backoffice/series*', {
+    statusCode: 200,
+    body: {
+      data: [
+        {
+          id: 'serie-1',
+          title: 'Serie de Prueba 1',
+          description: 'Descripción de la serie 1',
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z'
+        },
+        {
+          id: 'serie-2',
+          title: 'Serie de Prueba 2',
+          description: 'Descripción de la serie 2',
+          createdAt: '2024-01-02T00:00:00Z',
+          updatedAt: '2024-01-02T00:00:00Z'
+        }
+      ],
+      total: 2,
+      page: 1,
+      limit: 10
+    }
+  }).as('getSeries');
+
+  // Interceptar requests de serie individual
+  cy.intercept('GET', '/api/backoffice/series/*', (req) => {
+    const serieId = req.url.split('/').pop()?.split('?')[0];
+    req.reply({
+      statusCode: 200,
+      body: {
+        id: serieId,
+        title: `Serie ${serieId}`,
+        description: `Descripción de la serie ${serieId}`,
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z'
+      }
+    });
+  }).as('getSerie');
+
+  // Interceptar creación de serie
+  cy.intercept('POST', '/api/backoffice/series', (req) => {
+    const newId = `serie-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    req.reply({
+      statusCode: 201,
+      body: {
+        id: newId,
+        ...req.body,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }).as('createSerie');
+
+  // Interceptar edición de serie
+  cy.intercept('PUT', '/api/backoffice/series/*', (req) => {
+    req.reply({
+      statusCode: 200,
+      body: {
+        ...req.body,
+        updatedAt: new Date().toISOString()
+      }
+    });
+  }).as('updateSerie');
+
+  // Interceptar borrado de serie
+  cy.intercept('DELETE', '/api/backoffice/series/*', { statusCode: 204 }).as('deleteSerie');
   
   // Establecer tokens en localStorage
   cy.window().then((window) => {

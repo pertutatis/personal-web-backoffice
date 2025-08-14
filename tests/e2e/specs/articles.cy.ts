@@ -81,7 +81,6 @@ describe('Gestión de Artículos', () => {
     
     // Removemos el atributo required para probar la validación JavaScript
     cy.get('[data-cy=article-title-input]').invoke('removeAttr', 'required');
-    cy.get('[data-cy=article-slug-input]').invoke('removeAttr', 'required');
     cy.get('[data-cy=article-excerpt-input]').invoke('removeAttr', 'required');
     cy.get('[data-cy=article-content-input]').invoke('removeAttr', 'required');
     
@@ -90,7 +89,6 @@ describe('Gestión de Artículos', () => {
     
   // Verificamos que aparezcan los mensajes de error de validación JavaScript
   cy.get('[data-cy=article-title-error]').scrollIntoView().should('be.visible');
-  cy.get('[data-cy=article-slug-error]').scrollIntoView().should('be.visible');
   cy.get('[data-cy=article-excerpt-error]').scrollIntoView().should('be.visible');
   cy.get('[data-cy=article-content-error]').scrollIntoView().should('be.visible');
   });

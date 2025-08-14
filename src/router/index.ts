@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { seriesRoutes } from './series'
 import { authGuard } from './guards/authGuard'
 
 // Definición de rutas
@@ -75,6 +76,8 @@ const routes: RouteRecordRaw[] = [
     meta: { title: 'Editar Libro', requiresAuth: true },
     props: true
   },
+  // Rutas de Series
+  ...seriesRoutes,
   // Ruta de error 404
   {
     path: '/:pathMatch(.*)*',

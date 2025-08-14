@@ -1,34 +1,37 @@
 <template>
-  <Teleport to="body">
-    <Transition name="modal">
-      <div v-if="modelValue" class="modal-overlay" @click="handleOverlayClick">
-        <div class="modal" :class="[`modal--${size}`]" role="dialog" @click.stop>
-          <!-- Header -->
-          <div class="modal__header">
-            <h3 class="modal__title">
-              <slot name="header">{{ title }}</slot>
-            </h3>
-            <button v-if="showClose" class="modal__close" @click="close" aria-label="Cerrar">
-              ×
-            </button>
-          </div>
-
-          <!-- Content -->
-          <div class="modal__content">
-            <slot></slot>
-          </div>
-
-          <!-- Footer -->
-          <div v-if="$slots.footer" class="modal__footer">
-            <slot name="footer">
-              <BaseButton variant="secondary" @click="close">Cancelar</BaseButton>
-              <BaseButton variant="primary" @click="confirm">Aceptar</BaseButton>
+  <!-- Eliminar Teleport para e2e: renderizar modal en el árbol principal -->
+  <Transition name="modal">
+    <div v-if="modelValue" class="modal-overlay" @click="handleOverlayClick">
+      <div class="modal" :class="[`modal--${size}`]" role="dialog" @click.stop>
+        <!-- Header -->
+        <div class="modal__header">
+          <h3 class="modal__title text-2xl font-bold text-white dark:text-gray-100 w-full text-center mb-2">
+            <slot name="header">
+              <span class="inline-block px-4 py-2 rounded bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg">
+                {{ title === 'edit' ? 'Editar serie' : (title || 'Crear serie') }}
+              </span>
             </slot>
-          </div>
+          </h3>
+          <button v-if="showClose" class="modal__close" @click="close" aria-label="Cerrar">
+            ×
+          </button>
+        </div>
+
+        <!-- Content -->
+        <div class="modal__content">
+          <slot></slot>
+        </div>
+
+        <!-- Footer -->
+        <div v-if="$slots.footer" class="modal__footer">
+          <slot name="footer">
+            <BaseButton variant="secondary" @click="close">Cancelar</BaseButton>
+            <BaseButton variant="primary" @click="confirm">Aceptar</BaseButton>
+          </slot>
         </div>
       </div>
-    </Transition>
-  </Teleport>
+    </div>
+  </Transition>
 </template>
 
 <script lang="ts">
@@ -50,8 +53,9 @@ export default defineComponent({
       default: ''
     },
     size: {
-      type: String as PropType<'sm' | 'md' | 'lg'>,
-      default: 'md'
+      type: String,
+      default: 'md',
+      validator: (value: string) => ['sm', 'md', 'lg'].includes(value)
     },
     showClose: {
       type: Boolean,
@@ -67,7 +71,18 @@ export default defineComponent({
     }
   },
   emits: ['update:modelValue', 'confirm', 'close'],
-  setup(props, { emit }) {
+  setup(
+    props: {
+      modelValue: boolean
+      title: string
+      size: 'sm' | 'md' | 'lg'
+      showClose: boolean
+      closeOnOverlay: boolean
+      closeOnEscape: boolean
+    },
+    context: { emit: (event: string, ...args: any[]) => void }
+  ) {
+    const emit = context.emit
     // Métodos
     const close = () => {
       emit('update:modelValue', false)
@@ -122,14 +137,21 @@ export default defineComponent({
   z-index: 1000;
 }
 
+
 .modal {
-  background-color: white;
+  background-color: #1e293b;
+  /* Tailwind slate-800, fondo oscuro en modo claro */
   border-radius: 0.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   max-width: 90vw;
+}
+
+.dark .modal {
+  background-color: #0f172a;
+  /* Tailwind slate-900, fondo aún más oscuro en modo oscuro */
 }
 
 .modal--sm {

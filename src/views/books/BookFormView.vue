@@ -104,22 +104,6 @@
         <small v-else class="form-hint">ISBN-10 o ISBN-13 (sin guiones)</small>
       </div>
 
-      <!-- Año de publicación -->
-      <div class="form-group" :class="{ 'has-error': errors.year }">
-        <label for="book-year" class="form-label">Año de publicación</label>
-        <input 
-          id="book-year"
-          type="number"
-          v-model="form.year"
-          data-cy="book-year-input"
-          :class="['form-input', { 'error': errors.year }]"
-          placeholder="Año de publicación"
-          min="1000"
-          max="2100"
-        />
-        <small v-if="errors.year" class="error-message" data-cy="book-year-error">{{ errors.year }}</small>
-      </div>
-
       <!-- Descripción -->
       <div class="form-group" :class="{ 'has-error': errors.description }">
         <label for="book-description" class="form-label">Descripción *</label>
@@ -171,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, toRefs } from 'vue';
+import { ref, computed, watch, onMounted, toRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { v4 as uuidv4 } from 'uuid';
 import { booksApi } from '../../composables/api/booksApi';
@@ -185,7 +169,7 @@ const route = useRoute();
 const router = useRouter();
 const uiStore = useUIStore();
 const queryClient = useQueryClient(); // Inicializar queryClient en el nivel superior
-const { id } = toRefs(props);
+const { id } = toRef(props);
 
 // Estado del formulario
 const form = ref({
