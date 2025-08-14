@@ -85,7 +85,7 @@ function isActiveRoute(path: string): boolean {
 }
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .sidebar {
   @apply h-full w-64 bg-gray-800 text-white transition-all duration-300 ease-in-out dark:bg-gray-800;
 }

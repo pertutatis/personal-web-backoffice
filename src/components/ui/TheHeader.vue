@@ -54,7 +54,7 @@ function toggleTheme() {
 }
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .header {
   @apply flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800;
 }

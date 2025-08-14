@@ -55,7 +55,6 @@ export interface Book extends BaseModel {
   isbn: string
   description: string
   purchaseLink: string | null
-  year: number
   imageUrl: string | null
 }
 
@@ -67,7 +66,6 @@ export interface BookCreate {
   isbn: string
   description: string
   purchaseLink?: string | null
-  year: number
   imageUrl?: string | null
 }
 
@@ -77,7 +75,6 @@ export interface BookUpdate {
   isbn?: string
   description?: string
   purchaseLink?: string | null
-  year?: number
   imageUrl?: string | null
 }
 

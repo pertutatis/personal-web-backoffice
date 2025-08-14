@@ -21,7 +21,6 @@ export const bookSchema = z.object({
   author: z.string().min(3).max(100),
   isbn: z.string().regex(/^[\d-]{10,17}$/),
   description: z.string().min(10),
-  year: z.number().int().min(1000).max(new Date().getFullYear()),
   purchaseLink: z.string().url().nullable().optional(),
   imageUrl: z.string().url().nullable().optional()
 })
@@ -42,10 +41,6 @@ export const validationMessages = {
   email: 'Debe ser un email válido',
   url: 'Debe ser una URL válida',
   isbn: 'Debe ser un ISBN válido',
-  year: {
-    min: 'El año no puede ser anterior a 1000',
-    max: 'El año no puede ser posterior al actual'
-  }
 }
 
 // Helpers de validación

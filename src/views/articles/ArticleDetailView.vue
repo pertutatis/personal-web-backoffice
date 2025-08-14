@@ -295,7 +295,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .article-detail {
   @apply space-y-6;
 }
@@ -408,6 +408,10 @@ onMounted(() => {
 
 .section-title {
   @apply mb-4 text-lg font-medium text-gray-900 dark:text-white;
+}
+
+.excerpt-content {
+  @apply mb-4;
 }
 
 .markdown-preview {

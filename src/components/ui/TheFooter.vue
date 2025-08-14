@@ -12,7 +12,7 @@ import { computed } from 'vue';
 const currentYear = computed(() => new Date().getFullYear());
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .footer {
   @apply border-t border-gray-200 bg-white py-4 text-center text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400;
 }

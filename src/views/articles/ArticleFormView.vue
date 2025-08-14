@@ -220,44 +220,42 @@
       <!-- Enlaces relacionados -->
       <div class="form-group">
         <label class="form-label">Enlaces relacionados</label>
-        <div class="related-links">
-          <div v-if="form.relatedLinks.length === 0" class="no-links">
-            No hay enlaces relacionados. Haz clic en "Añadir enlace relacionado" para agregar uno.
-          </div>
+        <div class="space-y-2">
+          <div v-if="form.relatedLinks.length === 0" class="text-gray-500">No hay enlaces relacionados.</div>
           <div 
             v-for="(link, index) in form.relatedLinks" 
             :key="index" 
-            class="link-item"
+            class="flex items-center gap-3 py-2 px-3 rounded-lg border border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 mb-2 shadow-sm"
           >
-            <div class="link-inputs">
-              <div class="link-input-group">
-                <label :for="'link-text-' + index" class="link-label">Texto</label>
+            <div class="flex flex-col sm:flex-row gap-2 flex-1">
+              <div class="flex flex-col flex-1">
+                <label :for="'link-text-' + index" class="text-xs text-gray-500 mb-1">Texto</label>
                 <input
                   :id="'link-text-' + index"
                   type="text"
                   v-model="link.text"
                   placeholder="Texto del enlace"
-                  class="form-input"
+                  class="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-1 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
               </div>
-              <div class="link-input-group">
-                <label :for="'link-url-' + index" class="link-label">URL</label>
+              <div class="flex flex-col flex-1">
+                <label :for="'link-url-' + index" class="text-xs text-gray-500 mb-1">URL</label>
                 <input
                   :id="'link-url-' + index"
                   type="text"
                   v-model="link.url"
                   placeholder="https://ejemplo.com"
-                  class="form-input"
+                  class="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-1 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
               </div>
             </div>
             <button
               type="button"
               @click="removeLink(index)"
-              class="remove-link-button"
+              class="ml-2 p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 transition"
               title="Eliminar enlace"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </button>
@@ -265,9 +263,9 @@
           <button
             type="button"
             @click="addLink"
-            class="add-link-button"
+            class="mt-2 flex items-center gap-2 px-3 py-2 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 font-medium transition"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             Añadir enlace relacionado
@@ -734,7 +732,7 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .article-form {
   @apply space-y-6;
 }
@@ -1015,4 +1013,5 @@ onMounted(async () => {
 .publish-confirm-button {
   @apply bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:bg-green-400;
 }
-</style>
+       
+        </style>

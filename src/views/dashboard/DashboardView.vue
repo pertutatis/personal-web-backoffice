@@ -219,7 +219,7 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .dashboard {
   @apply space-y-8;
 }

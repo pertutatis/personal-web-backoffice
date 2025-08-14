@@ -13,7 +13,7 @@
 // No se requiere lógica adicional
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .not-found {
   @apply flex min-h-[80vh] items-center justify-center p-4 text-center;
 }

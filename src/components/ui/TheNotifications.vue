@@ -74,7 +74,7 @@ export default defineComponent({
 })
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .notifications {
   position: fixed;
   top: 20px;

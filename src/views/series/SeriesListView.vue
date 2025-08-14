@@ -283,7 +283,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .series-list {
   @apply space-y-6;
 }

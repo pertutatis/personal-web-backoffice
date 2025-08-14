@@ -63,7 +63,7 @@ export default defineComponent({
 })
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .base-button {
   display: inline-flex;
   align-items: center;

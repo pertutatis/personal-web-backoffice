@@ -470,7 +470,7 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .book-form {
   @apply space-y-6;
 }

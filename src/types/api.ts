@@ -29,7 +29,6 @@ export interface ArticleResponse {
 // Tipos para libros
 export interface BookQueryParams extends PaginationParams {
   author?: string
-  year?: number
 }
 
 export interface BookListResponse extends PaginatedResponse<Book> {}

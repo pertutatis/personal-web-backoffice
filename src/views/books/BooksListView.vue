@@ -324,7 +324,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .books-list {
   @apply space-y-6;
 }
