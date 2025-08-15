@@ -4,13 +4,24 @@
     <div class="form-header">
       <div class="navigation">
         <router-link to="/articulos" class="back-link">
-          <svg xmlns="http://www.w3.org/2000/svg" class="back-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="back-icon"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
           </svg>
           <span>Volver al listado</span>
         </router-link>
       </div>
-      <h1 class="form-title">{{ isEditMode ? 'Editar Artículo' : 'Nuevo Artículo' }}</h1>
+      <h1 class="form-title">{{ isEditMode ? "Editar Artículo" : "Nuevo Artículo" }}</h1>
     </div>
 
     <!-- Estado de carga para modo edición -->
@@ -21,8 +32,19 @@
 
     <!-- Error al cargar para edición -->
     <div v-else-if="isEditMode && loadError" class="error-state">
-      <svg xmlns="http://www.w3.org/2000/svg" class="error-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="error-icon"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
       <h3 class="error-title">Error al cargar el artículo</h3>
       <p class="error-message">{{ loadError }}</p>
@@ -53,8 +75,19 @@
             class="regenerate-button"
             title="Generar nuevo ID"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
           </button>
         </div>
@@ -64,45 +97,59 @@
       <!-- Título -->
       <div class="form-group" :class="{ 'has-error': errors.title }">
         <label for="article-title" class="form-label">Título *</label>
-        <input 
+        <input
           id="article-title"
           type="text"
           v-model="form.title"
           data-cy="article-title-input"
-          :class="['form-input', { 'error': errors.title }]"
+          :class="['form-input', { error: errors.title }]"
           placeholder="Introduce el título del artículo"
         />
-        <small v-if="errors.title" class="error-message" data-cy="article-title-error">{{ errors.title }}</small>
+        <small v-if="errors.title" class="error-message" data-cy="article-title-error">{{
+          errors.title
+        }}</small>
       </div>
 
       <!-- Slug -->
       <div class="form-group" :class="{ 'has-error': errors.slug }">
         <label for="article-slug" class="form-label">Slug</label>
-        <input 
+        <input
           id="article-slug"
           type="text"
           v-model="form.slug"
           data-cy="article-slug-input"
-          :class="['form-input', { 'error': errors.slug }]"
+          :class="['form-input', { error: errors.slug }]"
           placeholder="identificador-unico-del-articulo"
         />
-        <small v-if="errors.slug" class="error-message" data-cy="article-slug-error">{{ errors.slug }}</small>
-        <small v-else class="form-hint">URL amigable para el artículo (solo letras minúsculas, números y guiones)</small>
+        <small v-if="errors.slug" class="error-message" data-cy="article-slug-error">{{
+          errors.slug
+        }}</small>
+        <small v-else class="form-hint"
+          >URL amigable para el artículo (solo letras minúsculas, números y
+          guiones)</small
+        >
       </div>
-      
+
       <!-- Extracto -->
       <div class="form-group" :class="{ 'has-error': errors.excerpt }">
         <label for="article-excerpt" class="form-label">Extracto *</label>
-        <textarea 
+        <textarea
           id="article-excerpt"
           v-model="form.excerpt"
           data-cy="article-excerpt-input"
-          :class="['form-textarea', { 'error': errors.excerpt }]"
+          :class="['form-textarea', { error: errors.excerpt }]"
           placeholder="Breve resumen del artículo (máx. 300 caracteres)"
           rows="3"
         ></textarea>
-        <small v-if="errors.excerpt" class="error-message" data-cy="article-excerpt-error">{{ errors.excerpt }}</small>
-        <small v-else class="form-hint">Breve descripción que aparecerá en los listados</small>
+        <small
+          v-if="errors.excerpt"
+          class="error-message"
+          data-cy="article-excerpt-error"
+          >{{ errors.excerpt }}</small
+        >
+        <small v-else class="form-hint"
+          >Breve descripción que aparecerá en los listados</small
+        >
       </div>
 
       <!-- Editor Markdown -->
@@ -110,38 +157,73 @@
         <label for="article-content" class="form-label">Contenido *</label>
         <div class="markdown-editor">
           <div class="editor-toolbar">
-            <button type="button" class="toolbar-button" @click="insertMarkdown('**', '**')" title="Negrita">
+            <button
+              type="button"
+              class="toolbar-button"
+              @click="insertMarkdown('**', '**')"
+              title="Negrita"
+            >
               <strong>B</strong>
             </button>
-            <button type="button" class="toolbar-button" @click="insertMarkdown('*', '*')" title="Cursiva">
+            <button
+              type="button"
+              class="toolbar-button"
+              @click="insertMarkdown('*', '*')"
+              title="Cursiva"
+            >
               <em>I</em>
             </button>
-            <button type="button" class="toolbar-button" @click="insertMarkdown('### ', '')" title="Encabezado">
+            <button
+              type="button"
+              class="toolbar-button"
+              @click="insertMarkdown('### ', '')"
+              title="Encabezado"
+            >
               H3
             </button>
-            <button type="button" class="toolbar-button" @click="insertMarkdown('> ', '')" title="Cita">
+            <button
+              type="button"
+              class="toolbar-button"
+              @click="insertMarkdown('> ', '')"
+              title="Cita"
+            >
               ""
             </button>
-            <button type="button" class="toolbar-button" @click="insertMarkdown('- ', '')" title="Lista">
+            <button
+              type="button"
+              class="toolbar-button"
+              @click="insertMarkdown('- ', '')"
+              title="Lista"
+            >
               •
             </button>
-            <button type="button" class="toolbar-button" @click="insertMarkdown('[', '](url)')" title="Enlace">
+            <button
+              type="button"
+              class="toolbar-button"
+              @click="insertMarkdown('[', '](url)')"
+              title="Enlace"
+            >
               🔗
             </button>
-            <button type="button" class="toolbar-button" @click="insertMarkdown('```', '```')" title="Código">
+            <button
+              type="button"
+              class="toolbar-button"
+              @click="insertMarkdown('```', '```')"
+              title="Código"
+            >
               &lt;/&gt;
             </button>
             <div class="editor-tabs">
-              <button 
+              <button
                 type="button"
-                :class="['tab-button', { 'active': activeTab === 'write' }]" 
+                :class="['tab-button', { active: activeTab === 'write' }]"
                 @click="activeTab = 'write'"
               >
                 Escribir
               </button>
-              <button 
+              <button
                 type="button"
-                :class="['tab-button', { 'active': activeTab === 'preview' }]" 
+                :class="['tab-button', { active: activeTab === 'preview' }]"
                 @click="activeTab = 'preview'"
               >
                 Vista Previa
@@ -154,7 +236,7 @@
               id="article-content"
               v-model="form.content"
               data-cy="article-content-input"
-              :class="['form-textarea', { 'error': errors.content }]"
+              :class="['form-textarea', { error: errors.content }]"
               placeholder="Escribe el contenido en formato Markdown..."
               rows="15"
             ></textarea>
@@ -165,8 +247,22 @@
             ></div>
           </div>
         </div>
-        <small v-if="errors.content" class="error-message" data-cy="article-content-error">{{ errors.content }}</small>
-        <small v-else class="form-hint">Soporta sintaxis <a href="https://www.markdownguide.org/basic-syntax/" target="_blank" rel="noopener noreferrer" class="hint-link">Markdown</a></small>
+        <small
+          v-if="errors.content"
+          class="error-message"
+          data-cy="article-content-error"
+          >{{ errors.content }}</small
+        >
+        <small v-else class="form-hint"
+          >Soporta sintaxis
+          <a
+            href="https://www.markdownguide.org/basic-syntax/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hint-link"
+            >Markdown</a
+          ></small
+        >
       </div>
 
       <!-- Serie asociada -->
@@ -189,24 +285,36 @@
         <div v-if="isLoadingBooks" class="loading-indicator">Cargando libros...</div>
         <div v-else-if="bookOptions.length === 0" class="no-books">
           No hay libros disponibles para seleccionar.
-          <router-link to="/libros/nuevo" class="create-book-link">Crear un libro</router-link>
+          <router-link to="/libros/nuevo" class="create-book-link"
+            >Crear un libro</router-link
+          >
         </div>
         <div v-else class="books-selection">
-          <label 
-            v-for="book in bookOptions" 
-            :key="book.id" 
-            :class="['book-checkbox', { 'selected': isBookSelected(book.id) }]"
+          <label
+            v-for="book in bookOptions"
+            :key="book.id"
+            :class="['book-checkbox', { selected: isBookSelected(book.id) }]"
           >
-            <input 
-              type="checkbox" 
-              :value="book.id" 
+            <input
+              type="checkbox"
+              :value="book.id"
               :checked="isBookSelected(book.id)"
               @change="toggleBookSelection(book.id)"
               class="checkbox-input"
             />
             <div class="checkbox">
-              <svg v-if="isBookSelected(book.id)" xmlns="http://www.w3.org/2000/svg" class="check-icon" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+              <svg
+                v-if="isBookSelected(book.id)"
+                xmlns="http://www.w3.org/2000/svg"
+                class="check-icon"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clip-rule="evenodd"
+                />
               </svg>
             </div>
             <div class="book-info">
@@ -221,15 +329,19 @@
       <div class="form-group">
         <label class="form-label">Enlaces relacionados</label>
         <div class="space-y-2">
-          <div v-if="form.relatedLinks.length === 0" class="text-gray-500">No hay enlaces relacionados.</div>
-          <div 
-            v-for="(link, index) in form.relatedLinks" 
-            :key="index" 
+          <div v-if="form.relatedLinks.length === 0" class="text-gray-500">
+            No hay enlaces relacionados.
+          </div>
+          <div
+            v-for="(link, index) in form.relatedLinks"
+            :key="index"
             class="flex items-center gap-3 py-2 px-3 rounded-lg border border-gray-200 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 mb-2 shadow-sm"
           >
             <div class="flex flex-col sm:flex-row gap-2 flex-1">
               <div class="flex flex-col flex-1">
-                <label :for="'link-text-' + index" class="text-xs text-gray-500 mb-1">Texto</label>
+                <label :for="'link-text-' + index" class="text-xs text-gray-500 mb-1"
+                  >Texto</label
+                >
                 <input
                   :id="'link-text-' + index"
                   type="text"
@@ -239,7 +351,9 @@
                 />
               </div>
               <div class="flex flex-col flex-1">
-                <label :for="'link-url-' + index" class="text-xs text-gray-500 mb-1">URL</label>
+                <label :for="'link-url-' + index" class="text-xs text-gray-500 mb-1"
+                  >URL</label
+                >
                 <input
                   :id="'link-url-' + index"
                   type="text"
@@ -255,8 +369,19 @@
               class="ml-2 p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 transition"
               title="Eliminar enlace"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
               </svg>
             </button>
           </div>
@@ -265,8 +390,19 @@
             @click="addLink"
             class="mt-2 flex items-center gap-2 px-3 py-2 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-400 font-medium transition"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
             </svg>
             Añadir enlace relacionado
           </button>
@@ -275,14 +411,40 @@
 
       <!-- Acciones del formulario -->
       <div class="form-actions">
-        <button type="button" @click="cancel" class="cancel-button" data-cy="article-cancel-button">
+        <button
+          type="button"
+          @click="cancel"
+          class="cancel-button"
+          data-cy="article-cancel-button"
+        >
           Cancelar
         </button>
-        <button type="submit" class="save-button" :disabled="isSaving || hasErrors" data-cy="article-submit-button">
+        <button
+          type="submit"
+          class="save-button"
+          :disabled="isSaving || hasErrors"
+          data-cy="article-submit-button"
+        >
           <span v-if="isSaving">
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <svg
+              class="animate-spin -ml-1 mr-2 h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
             Guardando...
           </span>
@@ -297,9 +459,25 @@
           class="publish-button"
         >
           <span v-if="isPublishing">
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <svg
+              class="animate-spin -ml-1 mr-2 h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
             Publicando...
           </span>
@@ -314,25 +492,27 @@
         <div class="modal-content">
           <h3 class="modal-title">Confirmar publicación</h3>
           <p class="modal-text">
-            ¿Estás seguro de que deseas publicar este artículo? 
-            <br><br>
-            <span class="modal-warning">Una vez publicado, no podrás volver a convertirlo en borrador.</span>
+            ¿Estás seguro de que deseas publicar este artículo?
+            <br /><br />
+            <span class="modal-warning"
+              >Una vez publicado, no podrás volver a convertirlo en borrador.</span
+            >
           </p>
           <div class="modal-actions">
-            <button 
-              @click="showPublishModal = false" 
+            <button
+              @click="showPublishModal = false"
               class="modal-button cancel-button"
               data-cy="cancel-publish-button"
             >
               Cancelar
             </button>
-            <button 
-              @click="confirmPublish" 
+            <button
+              @click="confirmPublish"
               :disabled="isPublishing"
               class="modal-button publish-confirm-button"
               data-cy="confirm-publish-button"
             >
-              {{ isPublishing ? 'Publicando...' : 'Publicar' }}
+              {{ isPublishing ? "Publicando..." : "Publicar" }}
             </button>
           </div>
         </div>
@@ -342,16 +522,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, toRef } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { v4 as uuidv4 } from 'uuid';
-import { marked } from 'marked';
-import DOMPurify from 'dompurify';
-import { articlesApi } from '../../composables/api/articlesApi';
-import { booksApi } from '../../composables/api/booksApi';
-import { seriesApi } from '../../composables/api/seriesApi';
-import { useUIStore } from '../../stores/uiStore';
-import { Article, ArticleStatus, Book } from '../../types/models';
+import { ref, computed, watch, onMounted, toRef } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { v4 as uuidv4 } from "uuid";
+import { marked } from "marked";
+import DOMPurify from "dompurify";
+import { articlesApi } from "../../composables/api/articlesApi";
+import { booksApi } from "../../composables/api/booksApi";
+import { seriesApi } from "../../composables/api/seriesApi";
+import { useUIStore } from "../../stores/uiStore";
+import { Article, ArticleStatus, Book } from "../../types/models";
 
 // Props y route
 const props = defineProps<{ id?: string }>();
@@ -362,14 +542,14 @@ const { id } = toRef(props);
 
 // Estado del formulario
 const form = ref({
-  id: '',
-  title: '',
-  excerpt: '',
-  content: '',
-  slug: '',
+  id: "",
+  title: "",
+  excerpt: "",
+  content: "",
+  slug: "",
   bookIds: [] as string[],
   relatedLinks: [] as Array<{ text: string; url: string }>,
-  seriesId: '' as string | null
+  seriesId: "" as string | null,
 });
 // Series
 const isLoadingSeries = ref(false);
@@ -382,8 +562,8 @@ async function loadSeries() {
     seriesOptions.value = response.data;
   } catch (err: any) {
     uiStore.addNotification({
-      type: 'warning',
-      message: 'Error al cargar la lista de series'
+      type: "warning",
+      message: "Error al cargar la lista de series",
     });
     seriesOptions.value = [];
   } finally {
@@ -398,25 +578,28 @@ const currentArticle = ref<Article | null>(null);
 const isLoading = ref(false);
 const isSaving = ref(false);
 const isPublishing = ref(false);
-const loadError = ref('');
+const loadError = ref("");
 const errors = ref<Record<string, string>>({});
-const activeTab = ref<'write' | 'preview'>('write');
+const activeTab = ref<"write" | "preview">("write");
 const isLoadingBooks = ref(false);
 const bookOptions = ref<Book[]>([]);
 const showPublishModal = ref(false);
 
 // Computados
 const isEditMode = computed(() => Boolean(articleId.value));
-const articleId = computed(() => id?.value || route.params.id as string);
+const articleId = computed(() => id?.value || (route.params.id as string));
 const hasErrors = computed(() => Object.keys(errors.value).length > 0);
 
-const renderedContent = ref('<p class="text-gray-400">No hay contenido para visualizar...</p>');
+const renderedContent = ref(
+  '<p class="text-gray-400">No hay contenido para visualizar...</p>'
+);
 
 watch(
   () => form.value.content,
   async (newContent: string) => {
     if (!newContent) {
-      renderedContent.value = '<p class="text-gray-400">No hay contenido para visualizar...</p>';
+      renderedContent.value =
+        '<p class="text-gray-400">No hay contenido para visualizar...</p>';
       return;
     }
     const rawHtml = await marked(newContent);
@@ -427,14 +610,13 @@ watch(
 
 // Computed para verificar si se puede publicar
 const canPublish = computed(() => {
-  return isEditMode.value && 
-         currentArticle.value?.status === ArticleStatus.DRAFT;
+  return isEditMode.value && currentArticle.value?.status === ArticleStatus.DRAFT;
 });
 
 // Métodos
 // Funciones para manejar enlaces relacionados
 function addLink() {
-  form.value.relatedLinks.push({ text: '', url: '' });
+  form.value.relatedLinks.push({ text: "", url: "" });
 }
 
 function removeLink(index: number) {
@@ -443,45 +625,49 @@ function removeLink(index: number) {
 
 function validateForm() {
   const newErrors: Record<string, string> = {};
-  
+
   if (!form.value.title.trim()) {
-    newErrors.title = 'El título es obligatorio';
+    newErrors.title = "El título es obligatorio";
   } else if (form.value.title.length > 100) {
-    newErrors.title = 'El título no puede exceder los 100 caracteres';
+    newErrors.title = "El título no puede exceder los 100 caracteres";
   }
-  
+
   // if (!form.value.slug.trim()) {
   //   newErrors.slug = 'El slug es obligatorio';
-  // } else 
+  // } else
   if (!!form.value.slug.trim() && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.value.slug)) {
-    newErrors.slug = 'El slug solo puede contener letras minúsculas, números y guiones';
+    newErrors.slug = "El slug solo puede contener letras minúsculas, números y guiones";
   }
 
   if (!form.value.excerpt.trim()) {
-    newErrors.excerpt = 'El extracto es obligatorio';
+    newErrors.excerpt = "El extracto es obligatorio";
   } else if (form.value.excerpt.length > 300) {
-    newErrors.excerpt = 'El extracto no puede exceder los 300 caracteres';
+    newErrors.excerpt = "El extracto no puede exceder los 300 caracteres";
   } else if (form.value.excerpt.length < 10) {
-    newErrors.excerpt = 'El extracto debe tener al menos 10 caracteres';
+    newErrors.excerpt = "El extracto debe tener al menos 10 caracteres";
   }
-  
+
   if (!form.value.content.trim()) {
-    newErrors.content = 'El contenido es obligatorio';
+    newErrors.content = "El contenido es obligatorio";
   } else if (form.value.content.length < 10) {
-    newErrors.content = 'El contenido debe tener al menos 10 caracteres';
+    newErrors.content = "El contenido debe tener al menos 10 caracteres";
   }
-  
+
   // Validar enlaces relacionados
-  form.value.relatedLinks.forEach((link: { text: string; url: string }, index: number) => {
-    if (link.text.trim() && !link.url.trim()) {
-      newErrors[`link-${index}`] = `El enlace #${index + 1} debe tener una URL`;
-    } else if (!link.text.trim() && link.url.trim()) {
-      newErrors[`link-${index}`] = `El enlace #${index + 1} debe tener un texto`;
-    } else if (link.url.trim() && !link.url.startsWith('http')) {
-      newErrors[`link-${index}`] = `La URL del enlace #${index + 1} debe comenzar con http:// o https://`;
+  form.value.relatedLinks.forEach(
+    (link: { text: string; url: string }, index: number) => {
+      if (link.text.trim() && !link.url.trim()) {
+        newErrors[`link-${index}`] = `El enlace #${index + 1} debe tener una URL`;
+      } else if (!link.text.trim() && link.url.trim()) {
+        newErrors[`link-${index}`] = `El enlace #${index + 1} debe tener un texto`;
+      } else if (link.url.trim() && !link.url.startsWith("http")) {
+        newErrors[`link-${index}`] = `La URL del enlace #${
+          index + 1
+        } debe comenzar con http:// o https://`;
+      }
     }
-  });
-  
+  );
+
   errors.value = newErrors;
   return Object.keys(newErrors).length === 0;
 }
@@ -492,32 +678,32 @@ function regenerateId() {
 
 async function loadArticle() {
   if (!articleId.value) return;
-  
+
   isLoading.value = true;
-  loadError.value = '';
-  
+  loadError.value = "";
+
   try {
     const article = await articlesApi.getArticle(articleId.value);
-    
+
     // Guardar el artículo actual
     currentArticle.value = article;
-    
+
     // Rellenar formulario con datos del artículo
     form.value = {
       id: article.id,
       title: article.title,
       excerpt: article.excerpt,
       content: article.content,
-      slug: article.slug || '',
+      slug: article.slug || "",
       bookIds: article.bookIds || [],
-      relatedLinks: article.relatedLinks || []
+      relatedLinks: article.relatedLinks || [],
+      seriesId: article.seriesId || "",
     };
-    
   } catch (err: any) {
-    loadError.value = err.message || 'Error al cargar el artículo';
+    loadError.value = err.message || "Error al cargar el artículo";
     uiStore.addNotification({
-      type: 'error',
-      message: 'Error al cargar el artículo'
+      type: "error",
+      message: "Error al cargar el artículo",
     });
   } finally {
     isLoading.value = false;
@@ -526,15 +712,15 @@ async function loadArticle() {
 
 async function loadBooks() {
   isLoadingBooks.value = true;
-  
+
   try {
     // En un caso real, cargaríamos con paginación
     const response = await booksApi.getBooks({ limit: 100 });
     bookOptions.value = response.items;
   } catch (err: any) {
     uiStore.addNotification({
-      type: 'warning',
-      message: 'Error al cargar la lista de libros'
+      type: "warning",
+      message: "Error al cargar la lista de libros",
     });
     bookOptions.value = [];
   } finally {
@@ -556,7 +742,7 @@ function toggleBookSelection(bookId: string) {
 }
 
 function insertMarkdown(prefix: string, suffix: string) {
-  const textarea = document.getElementById('article-content') as HTMLTextAreaElement;
+  const textarea = document.getElementById("article-content") as HTMLTextAreaElement;
   if (!textarea) return;
 
   const start = textarea.selectionStart;
@@ -593,15 +779,16 @@ async function saveArticle() {
         content: form.value.content,
         slug: form.value.slug,
         bookIds: form.value.bookIds,
-        relatedLinks: form.value.relatedLinks
+        relatedLinks: form.value.relatedLinks,
+        seriesId: form.value.seriesId,
       });
       uiStore.addNotification({
-        type: 'success',
-        message: 'Artículo actualizado correctamente'
+        type: "success",
+        message: "Artículo actualizado correctamente",
       });
     } else {
       // Crear nuevo artículo
-      console.log('[E2E] Enviando datos a createArticle:', {
+      console.log("[E2E] Enviando datos a createArticle:", {
         id: form.value.id,
         title: form.value.title,
         excerpt: form.value.excerpt,
@@ -609,7 +796,7 @@ async function saveArticle() {
         slug: form.value.slug,
         bookIds: form.value.bookIds,
         relatedLinks: form.value.relatedLinks,
-        status: ArticleStatus.DRAFT
+        status: ArticleStatus.DRAFT,
       });
       const response = await articlesApi.createArticle({
         id: form.value.id,
@@ -619,22 +806,22 @@ async function saveArticle() {
         slug: form.value.slug,
         bookIds: form.value.bookIds,
         relatedLinks: form.value.relatedLinks,
-        status: ArticleStatus.DRAFT
+        status: ArticleStatus.DRAFT,
       });
-      console.log('[E2E] Respuesta de createArticle:', response);
+      console.log("[E2E] Respuesta de createArticle:", response);
       uiStore.addNotification({
-        type: 'success',
-        message: 'Artículo creado correctamente'
+        type: "success",
+        message: "Artículo creado correctamente",
       });
     }
 
     // Redireccionar al listado
-    router.push('/articulos');
+    router.push("/articulos");
   } catch (err: any) {
-    console.error('[E2E] Error al guardar el artículo:', err);
+    console.error("[E2E] Error al guardar el artículo:", err);
     uiStore.addNotification({
-      type: 'error',
-      message: `Error al guardar el artículo: ${err.message || 'Error desconocido'}`
+      type: "error",
+      message: `Error al guardar el artículo: ${err.message || "Error desconocido"}`,
     });
   } finally {
     isSaving.value = false;
@@ -642,7 +829,7 @@ async function saveArticle() {
 }
 
 function cancel() {
-  router.push(isEditMode.value ? `/articulos/${articleId.value}` : '/articulos');
+  router.push(isEditMode.value ? `/articulos/${articleId.value}` : "/articulos");
 }
 
 // Función para manejar la publicación
@@ -652,25 +839,25 @@ function onPublish() {
 
 async function confirmPublish() {
   if (!currentArticle.value?.id) return;
-  
+
   isPublishing.value = true;
-  
+
   try {
     await articlesApi.publishArticle(currentArticle.value.id);
-    
+
     // Actualizar el estado del artículo actual
     currentArticle.value.status = ArticleStatus.PUBLISHED;
-    
+
     uiStore.addNotification({
-      type: 'success',
-      message: 'Artículo publicado correctamente'
+      type: "success",
+      message: "Artículo publicado correctamente",
     });
-    
+
     showPublishModal.value = false;
   } catch (err: any) {
     uiStore.addNotification({
-      type: 'error',
-      message: `Error al publicar el artículo: ${err.message || 'Error desconocido'}`
+      type: "error",
+      message: `Error al publicar el artículo: ${err.message || "Error desconocido"}`,
     });
   } finally {
     isPublishing.value = false;
@@ -758,7 +945,8 @@ onMounted(async () => {
 }
 
 /* Estados */
-.loading-state, .error-state {
+.loading-state,
+.error-state {
   @apply flex flex-col items-center justify-center py-12 text-center;
 }
 
@@ -811,7 +999,8 @@ onMounted(async () => {
   @apply relative;
 }
 
-.form-input, .form-textarea {
+.form-input,
+.form-textarea {
   @apply mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white;
 }
 
@@ -819,7 +1008,8 @@ onMounted(async () => {
   @apply bg-gray-100 dark:bg-gray-800;
 }
 
-.form-input.error, .form-textarea.error {
+.form-input.error,
+.form-textarea.error {
   @apply border-red-500 pr-10;
 }
 
@@ -1013,5 +1203,4 @@ onMounted(async () => {
 .publish-confirm-button {
   @apply bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:bg-green-400;
 }
-       
-        </style>
+</style>

@@ -24,6 +24,7 @@ export interface Article extends BaseModel {
   status: ArticleStatus
   bookIds: string[]
   relatedLinks: RelatedLink[]
+  seriesId?: string // Serie asociada opcional
 }
 
 // Permitir id y slug opcionales en la creación
@@ -46,6 +47,7 @@ export interface ArticleUpdate {
   slug?: string
   bookIds?: string[]
   relatedLinks?: RelatedLink[]
+  seriesId?: string
 }
 
 // Tipos para libros

@@ -278,8 +278,16 @@ const paginationItems = computed(() => {
   return [1, '...', currentPage.value - 1, currentPage.value, currentPage.value + 1, '...', totalPages.value];
 });
 
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+
 onMounted(() => {
   fetchSeries();
+  // Abrir modal si la query modal=add está presente
+  if (route.query.modal === 'add') {
+    openForm();
+  }
 });
 </script>
 

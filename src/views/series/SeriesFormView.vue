@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
 <template>
   <BaseModal :modelValue="modelValue" @close="$emit('close')" size="md">
     <template #title>
@@ -28,7 +27,7 @@ import { v4 as uuidv4 } from 'uuid'
           id="serie-description"
           data-cy="serie-description-input"
           class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-          maxlength="500"
+          maxlength="1000"
           rows="3"
           placeholder="Descripción breve (opcional)"
         />
@@ -79,8 +78,3 @@ const save = async () => {
   emit('saved')
 }
 </script>
-
-<!-- Export default para compatibilidad con importación estándar -->
-export default {
-  name: 'SeriesFormView'
-}

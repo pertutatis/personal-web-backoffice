@@ -39,14 +39,12 @@
               <span v-if="isLoading" class="inline-block w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span>
               <span v-else>{{ stats.totalArticles }}</span>
             </p>
-            
-              <div class="stat-info">
-                <span v-if="stats.publishedArticles !== undefined">{{ stats.publishedArticles }} publicados</span>
-              </div>
-              <router-link to="/articulos" class="stat-link">
-                Ver todos →
-              </router-link>
-            
+            <div class="stat-info">
+              <span v-if="stats.recentArticles !== undefined">{{ stats.recentArticles }} nuevos este mes</span>
+            </div>
+            <router-link to="/articulos" class="stat-link">
+              Ver todos →
+            </router-link>
           </div>
         </div>
 
@@ -73,6 +71,27 @@
             
           </div>
         </div>
+          <!-- Estadística de series -->
+          <div class="stat-card" :class="{ 'loading': isLoading }">
+            <div class="stat-icon bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </div>
+            <div class="stat-content">
+              <h3 class="stat-title">Total de Series</h3>
+              <p class="stat-value">
+                <span v-if="isLoading" class="inline-block w-12 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></span>
+                <span v-else>{{ stats.totalSeries }}</span>
+              </p>
+              <div class="stat-info">
+                <span v-if="stats.recentSeries !== undefined">{{ stats.recentSeries }} nuevas este mes</span>
+              </div>
+              <router-link to="/series" class="stat-link">
+                Ver todas →
+              </router-link>
+            </div>
+          </div>
     
       </div>
     </section>
@@ -80,7 +99,7 @@
     <!-- Sección de acciones rápidas -->
     <section class="quick-actions mb-10">
       <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">Acciones Rápidas</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <router-link to="/articulos/nuevo" class="action-card">
           <div class="action-icon bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -99,22 +118,13 @@
           <span class="action-text">Crear Libro</span>
         </router-link>
 
-        <router-link to="/articulos" class="action-card">
-          <div class="action-icon bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2M8 7h12" />
-            </svg>
-          </div>
-          <span class="action-text">Ver Artículos</span>
-        </router-link>
-
-        <router-link to="/libros" class="action-card">
+        <router-link :to="{ path: '/series', query: { modal: 'add' } }" class="action-card">
           <div class="action-icon bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2M8 7h12" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
           </div>
-          <span class="action-text">Ver Libros</span>
+          <span class="action-text">Crear Serie</span>
         </router-link>
       </div>
     </section>
@@ -131,7 +141,7 @@ const uiStore = useUIStore();
 const isLoading = ref(true);
 
 // Función para formatear fechas
-const formatDate = (dateString) => {
+const formatDate = (dateString: string): string => {
   if (!dateString) return 'N/A';
   
   const date = new Date(dateString);
@@ -152,7 +162,10 @@ const stats = ref({
   draftArticles: 0,
   recentBooks: 0,
   lastUpdate: new Date().toISOString(),
-  lastActivityDaysAgo: 0
+  lastActivityDaysAgo: 0,
+  totalSeries: 0,
+  recentSeries: 0,
+  recentArticles: 0
 });
 
 // Calcula el porcentaje de artículos publicados
@@ -184,8 +197,20 @@ const fetchDashboardData = async () => {
   stats.value.totalArticles = articlesData.total;
   
   // Obtener artículos publicados (con filtro de estado)
-  const publishedArticles = await articlesApi.getArticles({ limit: 1, status: 'published' });
-  stats.value.publishedArticles = publishedArticles.total;
+  // Si el API no acepta 'status', filtra después de obtener los artículos
+  const allArticles = await articlesApi.getArticles({ limit: 100 });
+  stats.value.publishedArticles = Array.isArray(allArticles.items)
+    ? allArticles.items.filter((a: any) => a.status === 'PUBLISHED').length
+    : 0;
+  // Artículos nuevos este mes
+  stats.value.recentArticles = Array.isArray(allArticles.items)
+    ? allArticles.items.filter((a: any) => {
+        if (!a.createdAt) return false;
+        const created = new Date(a.createdAt);
+        const now = new Date();
+        return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+      }).length
+    : 0;
   
   // Calcular borradores
   stats.value.draftArticles = stats.value.totalArticles - stats.value.publishedArticles;
@@ -199,6 +224,24 @@ const fetchDashboardData = async () => {
   
   // Establecer fecha de última actualización
   stats.value.lastUpdate = new Date().toISOString();
+
+  // Obtener datos de series
+  try {
+    const { seriesApi } = await import('../../composables/api/seriesApi');
+    const seriesData = await seriesApi.getSeries({ limit: 100 });
+    stats.value.totalSeries = seriesData.total ?? (Array.isArray(seriesData.data) ? seriesData.data.length : 0);
+    stats.value.recentSeries = Array.isArray(seriesData.data)
+      ? seriesData.data.filter((s: any) => {
+          if (!s.createdAt) return false;
+          const created = new Date(s.createdAt);
+          const now = new Date();
+          return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear();
+        }).length
+      : 0;
+  } catch (e) {
+    stats.value.totalSeries = 0;
+    stats.value.recentSeries = 0;
+  }
   
   return stats.value;
 };
@@ -233,7 +276,7 @@ onMounted(async () => {
 }
 
 .stats-grid {
-  @apply grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2;
+  @apply grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3;
 }
 
 .stat-card {
